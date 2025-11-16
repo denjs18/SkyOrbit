@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réservations - ULM Gestion Club</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body>
+    <!-- Sidebar (même que dashboard) -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-plane-departure"></i>
+            <h3>ULM Club</h3>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item"><i class="fas fa-home"></i><span>Tableau de bord</span></a>
+            <a href="reservations.html" class="nav-item active"><i class="fas fa-calendar-alt"></i><span>Réservations</span></a>
+            <a href="weather.html" class="nav-item"><i class="fas fa-cloud-sun"></i><span>Météo</span></a>
+            <a href="machines.html" class="nav-item"><i class="fas fa-helicopter"></i><span>Machines</span></a>
+            <a href="members.html" class="nav-item"><i class="fas fa-users"></i><span>Membres</span></a>
+            <a href="news.html" class="nav-item"><i class="fas fa-newspaper"></i><span>Actualités</span></a>
+            <a href="baptemes.html" class="nav-item"><i class="fas fa-ticket-alt"></i><span>Baptêmes</span></a>
+            <a href="finances.html" class="nav-item"><i class="fas fa-euro-sign"></i><span>Finances</span></a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <header class="top-header">
+            <button class="btn-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <div class="header-right">
+                <div class="user-menu">
+                    <button class="btn-user"><span>Jean Dupont</span></button>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h1><i class="fas fa-calendar-alt"></i> Gestion des Réservations</h1>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newReservationModal">
+                    <i class="fas fa-plus"></i> Nouvelle réservation
+                </button>
+            </div>
+
+            <!-- Filtres -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Machine</label>
+                            <select class="form-select" id="filterMachine">
+                                <option value="">Toutes les machines</option>
+                                <option value="ulm001">ULM-001 (Pendulaire)</option>
+                                <option value="ulm002">ULM-002 (Multiaxe)</option>
+                                <option value="ulm003">ULM-003 (Autogire)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Statut</label>
+                            <select class="form-select" id="filterStatus">
+                                <option value="">Tous les statuts</option>
+                                <option value="confirmed">Confirmée</option>
+                                <option value="pending">En attente</option>
+                                <option value="cancelled">Annulée</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Pilote</label>
+                            <input type="text" class="form-control" id="filterPilot" placeholder="Nom du pilote">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-secondary w-100" onclick="applyFilters()">
+                                <i class="fas fa-filter"></i> Filtrer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vues -->
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#calendarView">
+                                <i class="fas fa-calendar"></i> Vue Calendrier
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#listView">
+                                <i class="fas fa-list"></i> Vue Liste
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#timelineView">
+                                <i class="fas fa-stream"></i> Planning
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <!-- Vue Calendrier -->
+                        <div class="tab-pane fade show active" id="calendarView">
+                            <div id="calendar"></div>
+                        </div>
+
+                        <!-- Vue Liste -->
+                        <div class="tab-pane fade" id="listView">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Heure</th>
+                                            <th>Machine</th>
+                                            <th>Pilote</th>
+                                            <th>Type</th>
+                                            <th>Statut</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="reservationsList">
+                                        <tr>
+                                            <td>16/11/2025</td>
+                                            <td>09:00 - 11:00</td>
+                                            <td>ULM-001</td>
+                                            <td>Marc Leroy</td>
+                                            <td><span class="badge bg-primary">Vol libre</span></td>
+                                            <td><span class="badge bg-success">Confirmée</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
+                                                <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                                                <button class="btn btn-sm btn-outline-danger"><i class="fas fa-times"></i></button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>16/11/2025</td>
+                                            <td>11:30 - 13:30</td>
+                                            <td>ULM-003</td>
+                                            <td>Sophie Martin</td>
+                                            <td><span class="badge bg-info">Formation</span></td>
+                                            <td><span class="badge bg-warning">En attente</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
+                                                <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                                                <button class="btn btn-sm btn-outline-danger"><i class="fas fa-times"></i></button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Vue Planning -->
+                        <div class="tab-pane fade" id="timelineView">
+                            <div class="timeline-container">
+                                <div class="timeline-header">
+                                    <h5>Planning du 16 Novembre 2025</h5>
+                                </div>
+                                <div class="timeline-grid">
+                                    <div class="timeline-machines">
+                                        <div class="machine-row">ULM-001</div>
+                                        <div class="machine-row">ULM-002</div>
+                                        <div class="machine-row">ULM-003</div>
+                                    </div>
+                                    <div class="timeline-slots">
+                                        <div class="time-row">
+                                            <div class="slot reserved" style="grid-column: 9 / 11;">Marc L. 9h-11h</div>
+                                        </div>
+                                        <div class="time-row">
+                                            <div class="slot reserved" style="grid-column: 14 / 16;">Baptême 14h-16h</div>
+                                        </div>
+                                        <div class="time-row">
+                                            <div class="slot reserved" style="grid-column: 11 / 13;">Sophie M. 11h30-13h30</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nouvelle Réservation -->
+    <div class="modal fade" id="newReservationModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Nouvelle Réservation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newReservationForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Machine *</label>
+                                <select class="form-select" required>
+                                    <option value="">Sélectionner une machine</option>
+                                    <option value="ulm001">ULM-001 (Pendulaire)</option>
+                                    <option value="ulm002">ULM-002 (Multiaxe)</option>
+                                    <option value="ulm003">ULM-003 (Autogire)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Pilote *</label>
+                                <select class="form-select" required>
+                                    <option value="">Sélectionner un pilote</option>
+                                    <option value="pilot1">Marc Leroy</option>
+                                    <option value="pilot2">Sophie Martin</option>
+                                    <option value="pilot3">Pierre Dubois</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Date *</label>
+                                <input type="date" class="form-control" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Heure début *</label>
+                                <input type="time" class="form-control" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Heure fin *</label>
+                                <input type="time" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Type de vol *</label>
+                                <select class="form-select" required>
+                                    <option value="">Sélectionner un type</option>
+                                    <option value="libre">Vol libre</option>
+                                    <option value="formation">Formation</option>
+                                    <option value="bapteme">Baptême</option>
+                                    <option value="maintenance">Maintenance</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Instructeur (si formation)</label>
+                                <select class="form-select">
+                                    <option value="">Pas d'instructeur</option>
+                                    <option value="inst1">Jean Instructor</option>
+                                    <option value="inst2">Marie Coach</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Remarques</label>
+                                <textarea class="form-control" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" onclick="saveReservation()">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales/fr.global.min.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/reservations.js"></script>
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Météo - ULM Gestion Club</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-plane-departure"></i>
+            <h3>ULM Club</h3>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item"><i class="fas fa-home"></i><span>Tableau de bord</span></a>
+            <a href="reservations.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>Réservations</span></a>
+            <a href="weather.html" class="nav-item active"><i class="fas fa-cloud-sun"></i><span>Météo</span></a>
+            <a href="machines.html" class="nav-item"><i class="fas fa-helicopter"></i><span>Machines</span></a>
+            <a href="members.html" class="nav-item"><i class="fas fa-users"></i><span>Membres</span></a>
+            <a href="news.html" class="nav-item"><i class="fas fa-newspaper"></i><span>Actualités</span></a>
+            <a href="baptemes.html" class="nav-item"><i class="fas fa-ticket-alt"></i><span>Baptêmes</span></a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <header class="top-header">
+            <button class="btn-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <div class="header-right">
+                <div class="user-menu">
+                    <button class="btn-user"><span>Jean Dupont</span></button>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h1><i class="fas fa-cloud-sun"></i> Conditions Météorologiques</h1>
+                <button class="btn btn-primary" onclick="refreshWeather()">
+                    <i class="fas fa-sync-alt"></i> Actualiser
+                </button>
+            </div>
+
+            <!-- Conditions actuelles -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-8">
+                    <div class="card weather-card-main">
+                        <div class="card-body">
+                            <div class="weather-current">
+                                <div class="weather-location">
+                                    <h3><i class="fas fa-map-marker-alt"></i> Terrain d'ULM - Provence</h3>
+                                    <p class="text-muted">Mise à jour: <span id="updateTime">16/11/2025 14:30</span></p>
+                                </div>
+                                <div class="weather-main-display">
+                                    <div class="weather-icon-large">
+                                        <i class="fas fa-sun"></i>
+                                    </div>
+                                    <div class="weather-temp-large">
+                                        <h1>22°C</h1>
+                                        <p>Ciel dégagé</p>
+                                        <p class="feels-like">Ressenti: 20°C</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerte conditions de vol -->
+                <div class="col-lg-4">
+                    <div class="card flight-conditions-card">
+                        <div class="card-body text-center">
+                            <div class="flight-status excellent">
+                                <i class="fas fa-check-circle"></i>
+                                <h4>Conditions Excellentes</h4>
+                                <p>Parfait pour le vol ULM</p>
+                            </div>
+                            <div class="conditions-indicators mt-4">
+                                <div class="indicator">
+                                    <i class="fas fa-wind text-success"></i>
+                                    <small>Vent: OK</small>
+                                </div>
+                                <div class="indicator">
+                                    <i class="fas fa-eye text-success"></i>
+                                    <small>Visibilité: OK</small>
+                                </div>
+                                <div class="indicator">
+                                    <i class="fas fa-cloud text-success"></i>
+                                    <small>Plafond: OK</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Détails météo -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card weather-detail-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-wind weather-icon-detail"></i>
+                            <h3 id="windSpeed">12 km/h</h3>
+                            <p>Vent</p>
+                            <div class="wind-direction">
+                                <i class="fas fa-location-arrow" style="transform: rotate(45deg);"></i>
+                                <span>NE (45°)</span>
+                            </div>
+                            <div class="wind-gusts mt-2">
+                                <small class="text-muted">Rafales: 18 km/h</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card weather-detail-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-tint weather-icon-detail"></i>
+                            <h3>65%</h3>
+                            <p>Humidité</p>
+                            <small class="text-muted">Point de rosée: 15°C</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card weather-detail-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-tachometer-alt weather-icon-detail"></i>
+                            <h3>1013 hPa</h3>
+                            <p>Pression</p>
+                            <small class="text-success"><i class="fas fa-arrow-up"></i> Stable</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card weather-detail-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-eye weather-icon-detail"></i>
+                            <h3>10 km</h3>
+                            <p>Visibilité</p>
+                            <small class="text-success">Excellente</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Données supplémentaires -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card weather-detail-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-cloud weather-icon-detail"></i>
+                            <h3>15%</h3>
+                            <p>Couverture nuageuse</p>
+                            <small class="text-muted">Base: 2500m</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card weather-detail-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-sun weather-icon-detail"></i>
+                            <h3>8/10</h3>
+                            <p>Indice UV</p>
+                            <small class="text-warning">Élevé</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card weather-detail-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-sunrise weather-icon-detail"></i>
+                            <h3>07:24</h3>
+                            <p>Lever du soleil</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card weather-detail-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-sunset weather-icon-detail"></i>
+                            <h3>17:42</h3>
+                            <p>Coucher du soleil</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prévisions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-calendar-week"></i> Prévisions 7 jours</h5>
+                </div>
+                <div class="card-body">
+                    <div class="forecast-grid">
+                        <div class="forecast-day">
+                            <div class="day-name">Aujourd'hui</div>
+                            <i class="fas fa-sun forecast-icon"></i>
+                            <div class="temps">22° / 15°</div>
+                            <div class="wind-info"><i class="fas fa-wind"></i> 12 km/h</div>
+                        </div>
+                        <div class="forecast-day">
+                            <div class="day-name">Dimanche</div>
+                            <i class="fas fa-cloud-sun forecast-icon"></i>
+                            <div class="temps">20° / 14°</div>
+                            <div class="wind-info"><i class="fas fa-wind"></i> 15 km/h</div>
+                        </div>
+                        <div class="forecast-day">
+                            <div class="day-name">Lundi</div>
+                            <i class="fas fa-cloud forecast-icon"></i>
+                            <div class="temps">18° / 12°</div>
+                            <div class="wind-info"><i class="fas fa-wind"></i> 20 km/h</div>
+                        </div>
+                        <div class="forecast-day">
+                            <div class="day-name">Mardi</div>
+                            <i class="fas fa-cloud-rain forecast-icon"></i>
+                            <div class="temps">16° / 11°</div>
+                            <div class="wind-info"><i class="fas fa-wind"></i> 25 km/h</div>
+                        </div>
+                        <div class="forecast-day">
+                            <div class="day-name">Mercredi</div>
+                            <i class="fas fa-cloud-sun forecast-icon"></i>
+                            <div class="temps">19° / 13°</div>
+                            <div class="wind-info"><i class="fas fa-wind"></i> 18 km/h</div>
+                        </div>
+                        <div class="forecast-day">
+                            <div class="day-name">Jeudi</div>
+                            <i class="fas fa-sun forecast-icon"></i>
+                            <div class="temps">21° / 14°</div>
+                            <div class="wind-info"><i class="fas fa-wind"></i> 10 km/h</div>
+                        </div>
+                        <div class="forecast-day">
+                            <div class="day-name">Vendredi</div>
+                            <i class="fas fa-sun forecast-icon"></i>
+                            <div class="temps">23° / 16°</div>
+                            <div class="wind-info"><i class="fas fa-wind"></i> 8 km/h</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- METAR / TAF -->
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-file-alt"></i> METAR</h5>
+                        </div>
+                        <div class="card-body">
+                            <code class="metar-display">
+                                LFML 161430Z 04012KT 9999 FEW025 22/15 Q1013 NOSIG
+                            </code>
+                            <div class="metar-decode mt-3">
+                                <p><strong>Décodage:</strong></p>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check text-success"></i> Aérodrome: LFML (Marseille)</li>
+                                    <li><i class="fas fa-check text-success"></i> Date/Heure: 16 Nov, 14:30 UTC</li>
+                                    <li><i class="fas fa-check text-success"></i> Vent: 040° à 12 kt</li>
+                                    <li><i class="fas fa-check text-success"></i> Visibilité: >10 km</li>
+                                    <li><i class="fas fa-check text-success"></i> Nuages: Peu de nuages à 2500 ft</li>
+                                    <li><i class="fas fa-check text-success"></i> Température: 22°C / Point de rosée: 15°C</li>
+                                    <li><i class="fas fa-check text-success"></i> QNH: 1013 hPa</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-file-alt"></i> TAF (Prévisions)</h5>
+                        </div>
+                        <div class="card-body">
+                            <code class="metar-display">
+                                TAF LFML 161100Z 1612/1718 05015KT 9999 FEW030 SCT080<br>
+                                TEMPO 1615/1620 4000 SHRA BKN020CB
+                            </code>
+                            <div class="taf-decode mt-3">
+                                <p><strong>Prévisions:</strong></p>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-info-circle text-info"></i> Période: 16/12Z à 17/18Z</li>
+                                    <li><i class="fas fa-info-circle text-info"></i> Vent dominant: 050° à 15 kt</li>
+                                    <li><i class="fas fa-info-circle text-info"></i> Visibilité généralement >10 km</li>
+                                    <li><i class="fas fa-exclamation-triangle text-warning"></i> Temporairement 15h-20h: averses possibles, visibilité 4 km</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/weather.js"></script>
+</body>
+</html>

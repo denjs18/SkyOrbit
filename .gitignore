@@ -1,0 +1,47 @@
+# Configuration sensible
+config.php
+.env
+
+# Logs
+logs/
+*.log
+
+# Cache
+cache/
+*.cache
+
+# Uploads utilisateurs
+uploads/*
+!uploads/.gitkeep
+
+# Backups
+backups/
+*.sql
+*.sql.gz
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node modules (si développement)
+node_modules/
+package-lock.json
+
+# Vendor (si Composer)
+vendor/
+
+# Fichiers temporaires
+tmp/
+temp/
+*.tmp
+
+# Fichiers de session
+sessions/

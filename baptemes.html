@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baptêmes de l'Air - ULM Gestion Club</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-plane-departure"></i>
+            <h3>ULM Club</h3>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item"><i class="fas fa-home"></i><span>Tableau de bord</span></a>
+            <a href="reservations.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>Réservations</span></a>
+            <a href="weather.html" class="nav-item"><i class="fas fa-cloud-sun"></i><span>Météo</span></a>
+            <a href="machines.html" class="nav-item"><i class="fas fa-helicopter"></i><span>Machines</span></a>
+            <a href="members.html" class="nav-item"><i class="fas fa-users"></i><span>Membres</span></a>
+            <a href="news.html" class="nav-item"><i class="fas fa-newspaper"></i><span>Actualités</span></a>
+            <a href="baptemes.html" class="nav-item active"><i class="fas fa-ticket-alt"></i><span>Baptêmes</span></a>
+            <a href="finances.html" class="nav-item"><i class="fas fa-euro-sign"></i><span>Finances</span></a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <header class="top-header">
+            <button class="btn-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <div class="header-right">
+                <div class="user-menu">
+                    <button class="btn-user"><span>Jean Dupont</span></button>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h1><i class="fas fa-ticket-alt"></i> Gestion des Baptêmes de l'Air</h1>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newBaptemeModal">
+                    <i class="fas fa-plus"></i> Nouveau baptême
+                </button>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card bg-info">
+                        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                        <div class="stat-content">
+                            <h3>12</h3>
+                            <p>Baptêmes ce mois</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card bg-warning">
+                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                        <div class="stat-content">
+                            <h3>5</h3>
+                            <p>En attente</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card bg-success">
+                        <div class="stat-icon"><i class="fas fa-euro-sign"></i></div>
+                        <div class="stat-content">
+                            <h3>1 850€</h3>
+                            <p>Revenus ce mois</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card bg-primary">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-content">
+                            <h3>34</h3>
+                            <p>Total cette année</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarifs et Formules -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-tags"></i> Formules et Tarifs</h5>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editTarifsModal">
+                        <i class="fas fa-edit"></i> Modifier
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="price-card">
+                                <h5><i class="fas fa-star"></i> Découverte</h5>
+                                <div class="price">70€</div>
+                                <ul class="features">
+                                    <li><i class="fas fa-check"></i> 15 minutes de vol</li>
+                                    <li><i class="fas fa-check"></i> Survol de la région</li>
+                                    <li><i class="fas fa-check"></i> Photo souvenir</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="price-card popular">
+                                <div class="popular-badge">Le plus populaire</div>
+                                <h5><i class="fas fa-star"></i> Sensation</h5>
+                                <div class="price">120€</div>
+                                <ul class="features">
+                                    <li><i class="fas fa-check"></i> 30 minutes de vol</li>
+                                    <li><i class="fas fa-check"></i> Prise en main</li>
+                                    <li><i class="fas fa-check"></i> Photos + Vidéo</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="price-card">
+                                <h5><i class="fas fa-star"></i> Prestige</h5>
+                                <div class="price">200€</div>
+                                <ul class="features">
+                                    <li><i class="fas fa-check"></i> 60 minutes de vol</li>
+                                    <li><i class="fas fa-check"></i> Pilotage accompagné</li>
+                                    <li><i class="fas fa-check"></i> Pack photos/vidéos</li>
+                                    <li><i class="fas fa-check"></i> Certificat dédicacé</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des baptêmes -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list"></i> Réservations de Baptêmes</h5>
+                    <div class="filters">
+                        <select class="form-select form-select-sm" style="width: auto;">
+                            <option>Tous les statuts</option>
+                            <option>En attente</option>
+                            <option>Confirmé</option>
+                            <option>Effectué</option>
+                            <option>Annulé</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date & Heure</th>
+                                    <th>Client</th>
+                                    <th>Contact</th>
+                                    <th>Formule</th>
+                                    <th>Pilote</th>
+                                    <th>Paiement</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>#BAP-001</td>
+                                    <td>16/11/2025 14:00</td>
+                                    <td>Marie Rousseau</td>
+                                    <td>
+                                        <i class="fas fa-phone"></i> 06 12 34 56 78<br>
+                                        <i class="fas fa-envelope"></i> marie.r@email.fr
+                                    </td>
+                                    <td><span class="badge bg-warning">Sensation (120€)</span></td>
+                                    <td>Marc Leroy</td>
+                                    <td><span class="badge bg-success"><i class="fas fa-check"></i> Payé</span></td>
+                                    <td><span class="badge bg-success">Confirmé</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" title="Voir"><i class="fas fa-eye"></i></button>
+                                        <button class="btn btn-sm btn-outline-success" title="Marquer effectué"><i class="fas fa-check"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#BAP-002</td>
+                                    <td>17/11/2025 10:00</td>
+                                    <td>Thomas Blanc</td>
+                                    <td>
+                                        <i class="fas fa-phone"></i> 06 98 76 54 32<br>
+                                        <i class="fas fa-envelope"></i> thomas.blanc@email.fr
+                                    </td>
+                                    <td><span class="badge bg-info">Découverte (70€)</span></td>
+                                    <td>Sophie Martin</td>
+                                    <td><span class="badge bg-warning"><i class="fas fa-clock"></i> En attente</span></td>
+                                    <td><span class="badge bg-warning">En attente</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" title="Voir"><i class="fas fa-eye"></i></button>
+                                        <button class="btn btn-sm btn-outline-success" title="Confirmer"><i class="fas fa-check"></i></button>
+                                        <button class="btn btn-sm btn-outline-danger" title="Annuler"><i class="fas fa-times"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#BAP-003</td>
+                                    <td>18/11/2025 15:30</td>
+                                    <td>Julie & Pierre Morel</td>
+                                    <td>
+                                        <i class="fas fa-phone"></i> 06 45 67 89 12<br>
+                                        <i class="fas fa-envelope"></i> julie.morel@email.fr
+                                    </td>
+                                    <td><span class="badge bg-danger">Prestige (200€)</span></td>
+                                    <td>Jean Instructor</td>
+                                    <td><span class="badge bg-success"><i class="fas fa-check"></i> Payé</span></td>
+                                    <td><span class="badge bg-success">Confirmé</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" title="Voir"><i class="fas fa-eye"></i></button>
+                                        <button class="btn btn-sm btn-outline-success" title="Marquer effectué"><i class="fas fa-check"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widget réservation publique -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-globe"></i> Widget de Réservation Publique</h5>
+                </div>
+                <div class="card-body">
+                    <p>Intégrez ce code sur votre site web pour permettre au public de réserver directement en ligne:</p>
+                    <div class="code-block">
+                        <code>
+                            &lt;iframe src="https://votre-site.fr/baptemes/widget" width="100%" height="600"&gt;&lt;/iframe&gt;
+                        </code>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="copyWidget()">
+                            <i class="fas fa-copy"></i> Copier
+                        </button>
+                    </div>
+                    <a href="baptemes-public.html" class="btn btn-primary mt-3" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> Voir la page publique
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nouveau Baptême -->
+    <div class="modal fade" id="newBaptemeModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Nouveau Baptême de l'Air</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newBaptemeForm">
+                        <h6 class="mb-3"><i class="fas fa-user"></i> Informations Client</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Nom *</label>
+                                <input type="text" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Prénom *</label>
+                                <input type="text" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Téléphone *</label>
+                                <input type="tel" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email *</label>
+                                <input type="email" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Nombre de passagers</label>
+                                <input type="number" class="form-control" value="1" min="1" max="2">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Poids total (kg)</label>
+                                <input type="number" class="form-control" placeholder="Important pour la sécurité">
+                            </div>
+                        </div>
+
+                        <h6 class="mb-3"><i class="fas fa-calendar"></i> Réservation</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Formule *</label>
+                                <select class="form-select" required>
+                                    <option value="">Choisir une formule</option>
+                                    <option value="decouverte">Découverte - 70€ (15 min)</option>
+                                    <option value="sensation">Sensation - 120€ (30 min)</option>
+                                    <option value="prestige">Prestige - 200€ (60 min)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Date souhaitée *</label>
+                                <input type="date" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Heure souhaitée *</label>
+                                <input type="time" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Pilote assigné *</label>
+                                <select class="form-select" required>
+                                    <option value="">Choisir un pilote</option>
+                                    <option value="pilot1">Marc Leroy</option>
+                                    <option value="pilot2">Sophie Martin</option>
+                                    <option value="pilot3">Jean Instructor</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h6 class="mb-3"><i class="fas fa-euro-sign"></i> Paiement</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Statut paiement</label>
+                                <select class="form-select">
+                                    <option value="pending">En attente</option>
+                                    <option value="paid">Payé</option>
+                                    <option value="partial">Acompte versé</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Moyen de paiement</label>
+                                <select class="form-select">
+                                    <option value="">Non payé</option>
+                                    <option value="card">Carte bancaire</option>
+                                    <option value="cash">Espèces</option>
+                                    <option value="check">Chèque</option>
+                                    <option value="transfer">Virement</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Remarques</label>
+                                <textarea class="form-control" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" onclick="saveBapteme()">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/baptemes.js"></script>
+</body>
+</html>
