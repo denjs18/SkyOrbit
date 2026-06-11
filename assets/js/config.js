@@ -13,8 +13,8 @@ window.APP_CONFIG = {
     CLUB_NAME: 'Horizon Libre',
 
     // Projet Supabase : Settings > API
-    SUPABASE_URL: '',          // ex: https://abcdefgh.supabase.co
-    SUPABASE_ANON_KEY: '',     // clé "anon / public"
+    SUPABASE_URL: 'https://qjreqqhcjwpwjsxqaaeo.supabase.co',
+    SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqcmVxcWhjandwd2pzeHFhYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNjM2NTMsImV4cCI6MjA5NjczOTY1M30.ZAc_oQtfrlJ97hbUdOc6GVKsI7j3tYjhscuxiaLSDJA',
 
     // Campagne HelloAsso pour le paiement des baptêmes
     // ex: https://www.helloasso.com/associations/horizon-libre/evenements/bapteme-ulm
