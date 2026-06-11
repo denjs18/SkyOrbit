@@ -6,9 +6,9 @@
 
 ## 1. Contexte
 
-Application de gestion pour une **association d'ULM de grande taille
-(plus de 60 membres)**, avec une activité régulière de baptêmes de l'air
-payants ouverts au public.
+Application de gestion pour **Horizon Libre**, association d'ULM de
+grande taille (plus de 60 membres), avec une activité régulière de
+baptêmes de l'air payants ouverts au public.
 
 État actuel du projet : prototype frontend (HTML/CSS/JS vanilla) avec
 données de démonstration en localStorage. Aucune donnée partagée entre
@@ -101,11 +101,17 @@ des droits élargis.
 6. **Finitions** : alertes (licences, maintenance), nettoyage de la doc
    obsolète (PHP/MySQL), mise en production sur Vercel
 
-## 7. Points restant à clarifier
+## 7. Décisions complémentaires (10/06/2026)
 
-- Nom et coordonnées réels du club (le site affiche des valeurs fictives)
-- Liste réelle des machines et des formules de baptême (tarifs, durées)
-- Le club possède-t-il déjà un compte HelloAsso ?
-- Qui valide les réservations : tout instructeur, ou seulement le bureau ?
-- Faut-il limiter les réservations (ex. un créneau max par membre et par
-  jour, réservation soumise à cotisation à jour) ?
+- **Nom du club : Horizon Libre.** Coordonnées (adresse, téléphone,
+  email) à fournir plus tard ; des valeurs génériques restent affichées
+  en attendant.
+- **Liste des machines : à fournir plus tard.** L'inventaire démarre
+  vide ; les machines seront saisies via l'interface d'administration.
+- **HelloAsso : pas encore de compte.** L'intégration est préparée côté
+  application ; le lien vers la campagne HelloAsso sera branché quand le
+  compte de l'association sera créé.
+- **Validation des réservations : le bureau uniquement** (rôle admin).
+  Les instructeurs n'ont pas ce droit pour l'instant.
+- **Aucune limitation de réservation** pour l'instant (pas de quota par
+  membre, pas de condition de cotisation à jour).
