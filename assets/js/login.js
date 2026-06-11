@@ -39,12 +39,12 @@ function getCookie(name) {
     return null;
 }
 
-// Demo Access
+// Comptes de démonstration (mode démo uniquement)
 function fillDemo(role) {
     const demoUsers = {
-        admin: { username: 'admin@ulm-club.fr', password: 'admin123' },
-        instructor: { username: 'instructeur@ulm-club.fr', password: 'inst123' },
-        pilot: { username: 'pilote@ulm-club.fr', password: 'pilot123' }
+        admin: { username: 'admin@horizon-libre.fr', password: 'admin123' },
+        instructor: { username: 'instructeur@horizon-libre.fr', password: 'inst123' },
+        pilot: { username: 'pilote@horizon-libre.fr', password: 'pilot123' }
     };
 
     if (demoUsers[role]) {
@@ -54,42 +54,39 @@ function fillDemo(role) {
 }
 
 // Login Form Handler
-document.getElementById('loginForm').addEventListener('submit', function(e) {
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    const username = document.getElementById('username').value;
+    const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
     const rememberMe = document.getElementById('rememberMe').checked;
+    const btn = this.querySelector('button[type="submit"]');
 
-    // Simulation de connexion
-    if (username && password) {
-        // Stockage des informations de session
-        sessionStorage.setItem('isLoggedIn', 'true');
-        sessionStorage.setItem('username', username);
-        sessionStorage.setItem('userRole', getUserRole(username));
+    if (!username || !password) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Connexion...';
+
+    try {
+        await DB.signIn(username, password);
 
         if (rememberMe) {
             setCookie('rememberUser', username, 30);
         }
 
-        // Animation de succès
-        const btn = this.querySelector('button[type="submit"]');
         btn.innerHTML = '<i class="fas fa-check"></i> Connexion réussie !';
         btn.classList.remove('btn-primary');
         btn.classList.add('btn-success');
 
-        // Redirection vers le dashboard
         setTimeout(() => {
             window.location.href = 'dashboard.html';
-        }, 1000);
+        }, 500);
+    } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Se connecter';
+        showErrorToast(err.message || 'Connexion impossible');
     }
 });
-
-function getUserRole(username) {
-    if (username.includes('admin')) return 'admin';
-    if (username.includes('instructeur')) return 'instructor';
-    return 'pilot';
-}
 
 // Auto-fill if remembered
 window.addEventListener('load', function() {
@@ -97,6 +94,11 @@ window.addEventListener('load', function() {
     if (rememberedUser) {
         document.getElementById('username').value = rememberedUser;
         document.getElementById('rememberMe').checked = true;
+    }
+
+    // Les comptes de démonstration n'existent qu'en mode démo
+    if (DB.mode !== 'demo') {
+        document.querySelectorAll('.demo-access, [data-demo-only]').forEach(el => el.classList.add('d-none'));
     }
 
     // Check cookie consent

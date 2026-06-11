@@ -1,83 +1,63 @@
-# ULM Gestion Club - Système de Gestion Complet pour Associations d'ULM
+# SkyOrbit — Gestion du club ULM Horizon Libre
 
-## 🚁 Présentation
+Application web de gestion pour l'association d'ULM **Horizon Libre** :
+réservations de machines, membres et cotisations, carnet de maintenance,
+baptêmes de l'air payants (HelloAsso) et météo du terrain.
 
-Système de gestion complet pour les associations d'ULM incluant toutes les fonctionnalités essentielles pour la gestion quotidienne d'un aéroclub.
+Le périmètre fonctionnel et les décisions du projet sont documentés dans
+[CAHIER_DES_CHARGES.md](CAHIER_DES_CHARGES.md).
 
-## ✨ Fonctionnalités
+## Fonctionnalités (V1)
 
-### 🔐 Authentification et Gestion des Utilisateurs
-- Système de connexion sécurisé
-- Inscription et validation des nouveaux membres
-- Gestion des rôles (Admin, Instructeur, Pilote, Membre)
-- Récupération de mot de passe
+- **Réservations** — calendrier partagé des créneaux, détection de conflit,
+  validation par le bureau, clôture des vols avec saisie des heures réelles
+- **Membres & cotisations** — fiches membres, rôles (bureau, instructeur,
+  pilote, membre), licences et visites médicales avec alertes d'échéance,
+  suivi des cotisations annuelles
+- **Machines & maintenance** — inventaire, compteur d'heures alimenté par
+  les vols clôturés, échéances de visite avec alertes, journal d'entretien
+- **Baptêmes de l'air** — page publique de réservation, paiement HelloAsso,
+  back-office (affectation pilote/machine, suivi des statuts et revenus)
+- **Météo** — conditions du terrain via OpenWeatherMap, METAR/TAF
 
-### 📅 Réservation de Créneaux
-- Calendrier interactif pour réserver les machines
-- Gestion des disponibilités des ULM
-- Système de validation des réservations
-- Historique des vols
+## Architecture
 
-### 🌤️ Météo en Temps Réel
-- Informations météo locales
-- Vitesse et direction du vent
-- METAR/TAF
-- Conditions de vol
+- **Frontend** : HTML/CSS/JavaScript vanilla, Bootstrap 5, FullCalendar —
+  hébergé sur **Vercel** (site statique)
+- **Backend** : **Supabase** (PostgreSQL + authentification + API), schéma
+  et règles de sécurité dans [supabase/schema.sql](supabase/schema.sql)
+- **Paiements** : HelloAsso (lien de campagne, gratuit pour les associations)
 
-### ✈️ Gestion des Machines
-- Inventaire complet des ULM
-- Suivi de la maintenance
-- Heures de vol par machine
-- Documents techniques
+### Mode démonstration
 
-### 👥 Gestion des Membres
-- Profils des membres
-- Licences et qualifications
-- Cotisations et paiements
-- Statistiques de vol
+Tant que Supabase n'est pas configuré dans `assets/js/config.js`,
+l'application fonctionne en **mode démo** : les données restent dans le
+navigateur (localStorage) et des comptes de test sont proposés sur la page
+de connexion (`admin@horizon-libre.fr` / `admin123`, etc.). Il suffit
+d'ouvrir `index.html` ou de déployer tel quel pour tester.
 
-### 📰 Actualités et Communication
-- Fil d'actualités
-- Notifications importantes
-- Événements à venir
-- Documents partagés
+## Installation
 
-### 🎫 Baptêmes de l'Air Payants
-- Réservation en ligne pour le public
-- Gestion des paiements
-- Calendrier des disponibilités
-- Confirmation automatique
+Voir [INSTALLATION.md](INSTALLATION.md) pour la mise en production
+complète : création du projet Supabase, exécution du schéma SQL,
+configuration des clés, déploiement Vercel et branchement HelloAsso.
 
-### 💰 Gestion Financière
-- Suivi des paiements
-- Facturation
-- Rapports financiers
-- Gestion des cotisations
+## Structure
 
-## 🛠️ Technologies Utilisées
+```
+index.html              Connexion
+dashboard.html          Tableau de bord (stats, alertes)
+reservations.html       Réservations (calendrier, liste, planning)
+members.html            Membres & cotisations
+machines.html           Machines & maintenance
+baptemes.html           Baptêmes — administration (bureau uniquement)
+baptemes-public.html    Baptêmes — page publique de réservation
+weather.html            Météo du terrain
+assets/js/config.js     Configuration (clés Supabase, HelloAsso, météo, tarifs)
+assets/js/db.js         Couche de données (Supabase ou mode démo)
+supabase/schema.sql     Schéma PostgreSQL + règles de sécurité (RLS)
+```
 
-- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
-- **Design**: Bootstrap 5, Font Awesome
-- **Backend**: PHP 8+
-- **Base de données**: MySQL/MariaDB
-- **APIs**: OpenWeatherMap, METAR
+## Licence
 
-## 📦 Installation
-
-1. Cloner le repository
-2. Configurer la base de données (fichier `config/database.php`)
-3. Importer le schéma SQL (`database/schema.sql`)
-4. Configurer les clés API dans `config/config.php`
-5. Lancer le serveur web
-
-## 📖 Documentation
-
-Voir le dossier `/docs` pour la documentation complète.
-
-## 📄 Licence
-
-Copyright 2025 - Tous droits réservés
-
-## 👨‍💻 Support
-
-Pour toute question ou assistance, contactez l'équipe de développement.
+Copyright 2026 Horizon Libre — Tous droits réservés

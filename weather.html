@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Météo - ULM Gestion Club</title>
+    <title>Météo - Horizon Libre</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
@@ -13,7 +13,7 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <i class="fas fa-plane-departure"></i>
-            <h3>ULM Club</h3>
+            <h3>Horizon Libre</h3>
         </div>
         <nav class="sidebar-nav">
             <a href="dashboard.html" class="nav-item"><i class="fas fa-home"></i><span>Tableau de bord</span></a>
@@ -21,9 +21,11 @@
             <a href="weather.html" class="nav-item active"><i class="fas fa-cloud-sun"></i><span>Météo</span></a>
             <a href="machines.html" class="nav-item"><i class="fas fa-helicopter"></i><span>Machines</span></a>
             <a href="members.html" class="nav-item"><i class="fas fa-users"></i><span>Membres</span></a>
-            <a href="news.html" class="nav-item"><i class="fas fa-newspaper"></i><span>Actualités</span></a>
-            <a href="baptemes.html" class="nav-item"><i class="fas fa-ticket-alt"></i><span>Baptêmes</span></a>
+            <a href="baptemes.html" class="nav-item" data-role="admin"><i class="fas fa-ticket-alt"></i><span>Baptêmes</span></a>
         </nav>
+        <div class="sidebar-footer">
+            <a href="#" onclick="logout()" class="nav-item"><i class="fas fa-sign-out-alt"></i><span>Déconnexion</span></a>
+        </div>
     </div>
 
     <div class="main-content">
@@ -31,7 +33,7 @@
             <button class="btn-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
             <div class="header-right">
                 <div class="user-menu">
-                    <button class="btn-user"><span>Jean Dupont</span></button>
+                    <button class="btn-user"><span class="user-name">…</span></button>
                 </div>
             </div>
         </header>
@@ -302,6 +304,9 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/db.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/weather.js"></script>
 </body>

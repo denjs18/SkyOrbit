@@ -1,19 +1,34 @@
 // ============================================
 // MAIN JAVASCRIPT - FONCTIONS COMMUNES
 // ============================================
+// Toutes les pages internes incluent (dans cet ordre) :
+// config.js, le CDN supabase-js, db.js, puis main.js.
+// Les scripts de page attendent window.appReady pour avoir la session.
 
-// Check Authentication
-function checkAuth() {
-    const isLoggedIn = sessionStorage.getItem('isLoggedIn');
-    if (!isLoggedIn && !window.location.pathname.includes('index.html')) {
-        window.location.href = 'index.html';
+// Résolu avec { userId, profile } une fois l'utilisateur identifié.
+window.appReady = (async function () {
+    const isPublicPage = window.location.pathname.endsWith('index.html')
+        || window.location.pathname.endsWith('/')
+        || window.location.pathname.includes('baptemes-public');
+
+    let session = null;
+    try {
+        session = await DB.getSession();
+    } catch (e) {
+        console.error('Erreur de session:', e);
     }
-}
 
-// Logout Function
-function logout() {
-    sessionStorage.clear();
-    localStorage.clear();
+    if (!session && !isPublicPage) {
+        window.location.href = 'index.html';
+        return null;
+    }
+
+    window.CURRENT_USER = session ? session.profile : null;
+    return session;
+})();
+
+async function logout() {
+    await DB.signOut();
     window.location.href = 'index.html';
 }
 
@@ -23,13 +38,29 @@ function toggleSidebar() {
     sidebar.classList.toggle('show');
 }
 
-// Update User Info in Header
-function updateUserInfo() {
-    const username = sessionStorage.getItem('username') || 'Utilisateur';
-    const userNameElements = document.querySelectorAll('.user-name');
-    userNameElements.forEach(el => {
-        el.textContent = username;
+// Affiche le nom de l'utilisateur connecté et applique les droits :
+// les éléments marqués data-role="admin" ne sont visibles que pour le bureau.
+function applySession(profile) {
+    if (!profile) return;
+    document.querySelectorAll('.user-name').forEach(el => {
+        el.textContent = profile.full_name;
     });
+    if (profile.role !== 'admin') {
+        document.querySelectorAll('[data-role="admin"]').forEach(el => {
+            el.classList.add('d-none');
+        });
+    }
+}
+
+// Bandeau d'avertissement en mode démonstration (Supabase non configuré)
+function showDemoBannerIfNeeded() {
+    if (DB.mode !== 'demo') return;
+    const banner = document.createElement('div');
+    banner.className = 'alert alert-warning text-center mb-0 rounded-0 py-1';
+    banner.style.fontSize = '0.85rem';
+    banner.innerHTML = '<i class="fas fa-flask"></i> Mode démonstration : les données restent dans ce navigateur. '
+        + 'Configurez Supabase dans <code>assets/js/config.js</code> pour passer en réel.';
+    document.body.prepend(banner);
 }
 
 // Initialize tooltips
@@ -55,6 +86,14 @@ function formatTime(date) {
     const hours = String(d.getHours()).padStart(2, '0');
     const minutes = String(d.getMinutes()).padStart(2, '0');
     return `${hours}:${minutes}`;
+}
+
+// Échappe le HTML des valeurs saisies par l'utilisateur avant insertion
+// dans le DOM via innerHTML.
+function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = value == null ? '' : String(value);
+    return div.innerHTML;
 }
 
 // Show Success Toast
@@ -136,100 +175,10 @@ function hideLoading() {
     }
 }
 
-// Local Storage Helper
-const Storage = {
-    set: function(key, value) {
-        try {
-            localStorage.setItem(key, JSON.stringify(value));
-            return true;
-        } catch (e) {
-            console.error('Storage error:', e);
-            return false;
-        }
-    },
-
-    get: function(key, defaultValue = null) {
-        try {
-            const item = localStorage.getItem(key);
-            return item ? JSON.parse(item) : defaultValue;
-        } catch (e) {
-            console.error('Storage error:', e);
-            return defaultValue;
-        }
-    },
-
-    remove: function(key) {
-        localStorage.removeItem(key);
-    },
-
-    clear: function() {
-        localStorage.clear();
-    }
-};
-
-// API Helper (pour futures implémentations)
-const API = {
-    baseURL: '/api',
-
-    async get(endpoint) {
-        try {
-            const response = await fetch(this.baseURL + endpoint);
-            return await response.json();
-        } catch (error) {
-            console.error('API GET error:', error);
-            throw error;
-        }
-    },
-
-    async post(endpoint, data) {
-        try {
-            const response = await fetch(this.baseURL + endpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('API POST error:', error);
-            throw error;
-        }
-    },
-
-    async put(endpoint, data) {
-        try {
-            const response = await fetch(this.baseURL + endpoint, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('API PUT error:', error);
-            throw error;
-        }
-    },
-
-    async delete(endpoint) {
-        try {
-            const response = await fetch(this.baseURL + endpoint, {
-                method: 'DELETE'
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('API DELETE error:', error);
-            throw error;
-        }
-    }
-};
-
 // Handle responsive sidebar
 function handleResize() {
     const sidebar = document.getElementById('sidebar');
-    if (window.innerWidth <= 768) {
+    if (sidebar && window.innerWidth <= 768) {
         sidebar.classList.remove('show');
     }
 }
@@ -240,16 +189,17 @@ document.addEventListener('click', function(event) {
     const toggleBtn = document.querySelector('.btn-toggle');
 
     if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('show')) {
-        if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+        if (!sidebar.contains(event.target) && toggleBtn && !toggleBtn.contains(event.target)) {
             sidebar.classList.remove('show');
         }
     }
 });
 
 // Initialize on page load
-window.addEventListener('load', function() {
-    checkAuth();
-    updateUserInfo();
+window.addEventListener('load', async function() {
+    const session = await window.appReady;
+    applySession(session ? session.profile : null);
+    showDemoBannerIfNeeded();
     initTooltips();
     handleResize();
 });
@@ -265,5 +215,6 @@ window.showInfoToast = showInfoToast;
 window.confirmDialog = confirmDialog;
 window.showLoading = showLoading;
 window.hideLoading = hideLoading;
-window.Storage = Storage;
-window.API = API;
+window.escapeHtml = escapeHtml;
+window.formatDate = formatDate;
+window.formatTime = formatTime;

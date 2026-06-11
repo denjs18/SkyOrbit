@@ -2,99 +2,124 @@
 // DASHBOARD PAGE JAVASCRIPT
 // ============================================
 
-// Mock Data
-const dashboardData = {
-    stats: {
-        reservationsToday: 12,
-        machinesAvailable: 8,
-        totalMachines: 10,
-        activeMembers: 156,
-        baptemesPlanned: 5
-    },
-    weather: {
-        temp: 22,
-        condition: 'Ciel dégagé',
-        windSpeed: 12,
-        windDirection: 'NE',
-        humidity: 65,
-        visibility: 10,
-        pressure: 1013
-    },
-    reservations: [
-        { time: '09:00 - 11:00', machine: 'ULM-001', pilot: 'Marc Leroy', status: 'confirmed' },
-        { time: '11:30 - 13:30', machine: 'ULM-003', pilot: 'Sophie Martin', status: 'pending' },
-        { time: '14:00 - 16:00', machine: 'ULM-002', pilot: 'Baptême - Client X', status: 'bapteme' },
-        { time: '16:30 - 18:00', machine: 'ULM-001', pilot: 'Pierre Dubois', status: 'confirmed' }
-    ],
-    news: [
-        {
-            date: '15 Nov 2025',
-            title: 'Nouvelle réglementation ULM 2025',
-            excerpt: 'Mise à jour importante concernant les nouvelles normes de sécurité...',
-            link: '#'
-        },
-        {
-            date: '12 Nov 2025',
-            title: 'Rassemblement annuel prévu en juin',
-            excerpt: 'Réservez vos dates pour le grand rassemblement d\'été...',
-            link: '#'
-        },
-        {
-            date: '08 Nov 2025',
-            title: 'Maintenance programmée ULM-004',
-            excerpt: 'L\'appareil sera indisponible du 20 au 25 novembre...',
-            link: '#'
+function isSameDay(iso, ref) {
+    const a = new Date(iso);
+    return a.getFullYear() === ref.getFullYear()
+        && a.getMonth() === ref.getMonth()
+        && a.getDate() === ref.getDate();
+}
+
+function statusBadge(status) {
+    const map = {
+        confirmed: '<span class="badge bg-success">Confirmée</span>',
+        pending: '<span class="badge bg-warning">En attente</span>',
+        cancelled: '<span class="badge bg-danger">Annulée</span>',
+        completed: '<span class="badge bg-secondary">Effectuée</span>'
+    };
+    return map[status] || '';
+}
+
+async function loadDashboard() {
+    const [reservations, machines, members, baptemes] = await Promise.all([
+        DB.listReservations(),
+        DB.listMachines(),
+        DB.listMembers(),
+        DB.listBaptemes()
+    ]);
+
+    const now = new Date();
+    const todays = reservations.filter(r => r.status !== 'cancelled' && isSameDay(r.start_at, now));
+    const upcomingBaptemes = baptemes.filter(b => b.status !== 'cancelled' && b.status !== 'done' && new Date(b.slot_at) >= now);
+
+    document.getElementById('statReservationsToday').textContent = todays.length;
+    document.getElementById('statMachines').textContent = machines.filter(m => m.active).length;
+    document.getElementById('statMembers').textContent = members.filter(m => m.active).length;
+    document.getElementById('statBaptemes').textContent = upcomingBaptemes.length;
+
+    renderTodayReservations(todays);
+    renderAlerts({ machines, members, baptemes });
+}
+
+function renderTodayReservations(todays) {
+    const container = document.getElementById('todayReservations');
+    if (!todays.length) {
+        container.innerHTML = '<p class="text-muted mb-0">Aucune réservation aujourd\'hui.</p>';
+        return;
+    }
+    container.innerHTML = todays.map(r => `
+        <div class="reservation-item">
+            <div class="time">${formatTime(r.start_at)} - ${formatTime(r.end_at)}</div>
+            <div class="details">
+                <strong>${escapeHtml(r.machine_registration)}</strong> - ${escapeHtml(r.member_name)}
+            </div>
+            ${statusBadge(r.status)}
+        </div>
+    `).join('');
+}
+
+// Alertes : licences/visites médicales qui expirent, maintenances dues,
+// baptêmes en attente de traitement.
+function renderAlerts({ machines, members, baptemes }) {
+    const alerts = [];
+    const now = new Date();
+    const soon = new Date(now);
+    soon.setDate(soon.getDate() + 60);
+
+    const isAdmin = window.CURRENT_USER && window.CURRENT_USER.role === 'admin';
+    const visibleMembers = isAdmin ? members : members.filter(m => window.CURRENT_USER && m.id === window.CURRENT_USER.id);
+
+    visibleMembers.forEach(m => {
+        if (!m.active) return;
+        [['license_expiry', 'Licence'], ['medical_expiry', 'Visite médicale']].forEach(([field, label]) => {
+            if (!m[field]) return;
+            const exp = new Date(m[field]);
+            if (exp < now) {
+                alerts.push({ type: 'danger', icon: 'id-card', text: `${label} de ${m.full_name} expirée depuis le ${formatDate(exp)}` });
+            } else if (exp < soon) {
+                alerts.push({ type: 'warning', icon: 'id-card', text: `${label} de ${m.full_name} expire le ${formatDate(exp)}` });
+            }
+        });
+    });
+
+    machines.forEach(m => {
+        if (!m.active) return;
+        const sinceMaintenance = Number(m.hours_total) - Number(m.last_maintenance_hours);
+        const remaining = Number(m.maintenance_interval) - sinceMaintenance;
+        if (remaining <= 0) {
+            alerts.push({ type: 'danger', icon: 'wrench', text: `${m.registration} : visite d'entretien dépassée (${Math.abs(remaining).toFixed(1)} h au-delà du potentiel)` });
+        } else if (remaining <= 10) {
+            alerts.push({ type: 'warning', icon: 'wrench', text: `${m.registration} : visite d'entretien dans ${remaining.toFixed(1)} h de vol` });
         }
-    ]
-};
+    });
 
-// Update Dashboard Stats
-function updateDashboardStats() {
-    const stats = dashboardData.stats;
-
-    // Update stat cards (if they have dynamic IDs)
-    // This is for demonstration - in a real app, these would come from an API
-    console.log('Dashboard stats loaded:', stats);
-}
-
-// Update Weather Widget
-function updateWeatherWidget() {
-    const weather = dashboardData.weather;
-
-    // Update mini weather widget in header
-    const windSpeedEl = document.getElementById('windSpeed');
-    const windDirectionEl = document.getElementById('windDirection');
-
-    if (windSpeedEl) {
-        windSpeedEl.textContent = weather.windSpeed + ' km/h';
+    if (isAdmin) {
+        const pending = baptemes.filter(b => b.status === 'pending');
+        if (pending.length) {
+            alerts.push({ type: 'info', icon: 'ticket-alt', text: `${pending.length} demande(s) de baptême en attente de traitement` });
+        }
     }
 
-    if (windDirectionEl) {
-        windDirectionEl.textContent = weather.windDirection;
+    const container = document.getElementById('alertsList');
+    if (!alerts.length) {
+        container.innerHTML = '<p class="text-success mb-0"><i class="fas fa-check-circle"></i> Aucune alerte, tout est en ordre.</p>';
+        return;
     }
-}
+    container.innerHTML = alerts.map(a => `
+        <div class="alert alert-${a.type} py-2 mb-2">
+            <i class="fas fa-${a.icon}"></i> ${escapeHtml(a.text)}
+        </div>
+    `).join('');
 
-// Real-time Weather Update (simulated)
-function startWeatherUpdates() {
-    setInterval(() => {
-        // Simulate slight variations in wind
-        const variation = Math.floor(Math.random() * 5) - 2;
-        dashboardData.weather.windSpeed = Math.max(5, Math.min(25, dashboardData.weather.windSpeed + variation));
-        updateWeatherWidget();
-    }, 30000); // Update every 30 seconds
-}
-
-// Initialize Dashboard
-function initDashboard() {
-    updateDashboardStats();
-    updateWeatherWidget();
-    startWeatherUpdates();
-
-    // Add animation to stat cards
-    animateStatCards();
-
-    // Load notifications
-    loadNotifications();
+    const badge = document.querySelector('.btn-notification .badge');
+    if (badge) {
+        badge.textContent = alerts.length;
+        badge.style.display = alerts.length ? 'block' : 'none';
+    }
+    const menu = document.getElementById('notificationsMenu');
+    if (menu) {
+        menu.innerHTML = '<li><h6 class="dropdown-header">Notifications</h6></li>'
+            + alerts.slice(0, 6).map(a => `<li><span class="dropdown-item small">${escapeHtml(a.text)}</span></li>`).join('');
+    }
 }
 
 // Animate stat cards on load
@@ -113,96 +138,17 @@ function animateStatCards() {
     });
 }
 
-// Load Notifications
-function loadNotifications() {
-    // Simulate notification count
-    const notificationCount = 3;
-    const badge = document.querySelector('.btn-notification .badge');
-    if (badge && notificationCount > 0) {
-        badge.textContent = notificationCount;
-        badge.style.display = 'block';
-    }
-}
-
-// Mark notification as read
-function markNotificationRead(notificationId) {
-    showInfoToast('Notification marquée comme lue');
-    // Update notification count
-    const badge = document.querySelector('.btn-notification .badge');
-    if (badge) {
-        let count = parseInt(badge.textContent) || 0;
-        count = Math.max(0, count - 1);
-        badge.textContent = count;
-        if (count === 0) {
-            badge.style.display = 'none';
-        }
-    }
-}
-
-// Quick Actions
-function quickActionReservation() {
-    window.location.href = 'reservations.html?action=new';
-}
-
-function quickActionBapteme() {
-    window.location.href = 'baptemes.html?action=new';
-}
-
-function quickActionMember() {
-    window.location.href = 'members.html?action=add';
-}
-
-function quickActionNews() {
-    window.location.href = 'news.html?action=new';
-}
-
-// Auto-refresh dashboard data
-function startDashboardAutoRefresh() {
-    setInterval(() => {
-        // In a real app, this would fetch fresh data from the server
-        console.log('Refreshing dashboard data...');
-        updateDashboardStats();
-    }, 60000); // Refresh every minute
-}
-
-// Check for important alerts
-function checkAlerts() {
-    // Simulate checking for important alerts
-    const alerts = [
-        // Example: { type: 'warning', message: 'Conditions météo se dégradent', link: 'weather.html' }
-    ];
-
-    alerts.forEach(alert => {
-        if (alert.type === 'warning') {
-            showInfoToast(alert.message);
-        } else if (alert.type === 'danger') {
-            showErrorToast(alert.message);
-        }
-    });
-}
-
-// Export functions
-window.markNotificationRead = markNotificationRead;
-window.quickActionReservation = quickActionReservation;
-window.quickActionBapteme = quickActionBapteme;
-window.quickActionMember = quickActionMember;
-window.quickActionNews = quickActionNews;
-
 // Initialize on page load
-window.addEventListener('load', function() {
-    initDashboard();
-    startDashboardAutoRefresh();
-    checkAlerts();
+window.addEventListener('load', async function() {
+    const session = await window.appReady;
+    if (!session) return;
 
-    // Welcome message
-    const username = sessionStorage.getItem('username') || 'Utilisateur';
-    const hour = new Date().getHours();
-    let greeting = 'Bonjour';
-    if (hour < 12) greeting = 'Bonjour';
-    else if (hour < 18) greeting = 'Bon après-midi';
-    else greeting = 'Bonsoir';
+    animateStatCards();
 
-    setTimeout(() => {
-        showInfoToast(`${greeting} ! Bienvenue sur votre tableau de bord.`);
-    }, 500);
+    try {
+        await loadDashboard();
+    } catch (e) {
+        console.error(e);
+        showErrorToast('Impossible de charger le tableau de bord : ' + e.message);
+    }
 });

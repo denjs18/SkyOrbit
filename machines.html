@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machines - Horizon Libre</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-plane-departure"></i>
+            <h3>Horizon Libre</h3>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Tableau de bord</span>
+            </a>
+            <a href="reservations.html" class="nav-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Réservations</span>
+            </a>
+            <a href="weather.html" class="nav-item">
+                <i class="fas fa-cloud-sun"></i>
+                <span>Météo</span>
+            </a>
+            <a href="machines.html" class="nav-item active">
+                <i class="fas fa-helicopter"></i>
+                <span>Machines</span>
+            </a>
+            <a href="members.html" class="nav-item">
+                <i class="fas fa-users"></i>
+                <span>Membres</span>
+            </a>
+            <a href="baptemes.html" class="nav-item" data-role="admin">
+                <i class="fas fa-ticket-alt"></i>
+                <span>Baptêmes</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="#" onclick="logout()" class="nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Déconnexion</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header class="top-header">
+            <button class="btn-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <div class="header-right">
+                <div class="weather-widget-mini">
+                    <i class="fas fa-wind"></i>
+                    <span id="windSpeed">12 km/h</span>
+                    <span class="direction" id="windDirection">NE</span>
+                </div>
+
+                <div class="notifications">
+                    <button class="btn-notification" data-bs-toggle="dropdown">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" id="notificationsMenu">
+                        <li><h6 class="dropdown-header">Notifications</h6></li>
+                        <li><span class="dropdown-item text-muted">Aucune notification</span></li>
+                    </ul>
+                </div>
+
+                <div class="user-menu dropdown">
+                    <button class="btn-user" data-bs-toggle="dropdown">
+                        <img src="assets/img/default-avatar.png" alt="User" class="user-avatar">
+                        <span class="user-name">Jean Dupont</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Machines Content -->
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h1><i class="fas fa-helicopter"></i> Machines</h1>
+                <button class="btn btn-primary" data-role="admin" id="btnAddMachine">
+                    <i class="fas fa-plus"></i> Ajouter une machine
+                </button>
+            </div>
+
+            <div class="row g-4" id="machinesList">
+                <p class="text-muted">Chargement…</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ajouter / Éditer une machine -->
+    <div class="modal fade" id="machineModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="machineForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="machineModalTitle">Ajouter une machine</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="machineId">
+                        <div class="mb-3">
+                            <label for="machineRegistration" class="form-label">Immatriculation <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="machineRegistration" required placeholder="F-JABC">
+                        </div>
+                        <div class="mb-3">
+                            <label for="machineModel" class="form-label">Modèle <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="machineModel" required placeholder="Skyranger Nynja">
+                        </div>
+                        <div class="mb-3">
+                            <label for="machineType" class="form-label">Type</label>
+                            <select class="form-select" id="machineType">
+                                <option value="multiaxe">Multiaxe</option>
+                                <option value="pendulaire">Pendulaire</option>
+                                <option value="autogire">Autogire</option>
+                                <option value="paramoteur">Paramoteur</option>
+                                <option value="autre">Autre</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="machineHoursTotal" class="form-label">Heures totales</label>
+                                <input type="number" class="form-control" id="machineHoursTotal" min="0" step="0.1" value="0">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="machineInterval" class="form-label">Intervalle de visite (h)</label>
+                                <input type="number" class="form-control" id="machineInterval" min="1" step="1" value="50">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="machineLastMaintenance" class="form-label">Compteur à la dernière visite</label>
+                                <input type="number" class="form-control" id="machineLastMaintenance" min="0" step="0.1" value="0">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="machineNotes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="machineNotes" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Enregistrer une intervention -->
+    <div class="modal fade" id="maintenanceModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="maintenanceForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="maintenanceModalTitle">Enregistrer une intervention</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="maintenanceMachineId">
+                        <div class="mb-3">
+                            <label for="maintenanceDate" class="form-label">Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="maintenanceDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="maintenanceDescription" class="form-label">Description <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="maintenanceDescription" rows="3" required placeholder="Visite 50h : vidange, bougies…"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="maintenanceHours" class="form-label">Compteur au moment de la visite (h) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="maintenanceHours" min="0" step="0.1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="maintenancePerformedBy" class="form-label">Réalisé par</label>
+                            <input type="text" class="form-control" id="maintenancePerformedBy" placeholder="Atelier, mécanicien…">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-wrench"></i> Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Historique des interventions -->
+    <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="historyModalTitle">Historique des interventions</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="historyContent">
+                        <p class="text-muted">Chargement…</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/db.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/machines.js"></script>
+</body>
+</html>

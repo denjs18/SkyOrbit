@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Réservations - ULM Gestion Club</title>
+    <title>Réservations - Horizon Libre</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css">
@@ -15,7 +15,7 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <i class="fas fa-plane-departure"></i>
-            <h3>ULM Club</h3>
+            <h3>Horizon Libre</h3>
         </div>
         <nav class="sidebar-nav">
             <a href="dashboard.html" class="nav-item"><i class="fas fa-home"></i><span>Tableau de bord</span></a>
@@ -23,10 +23,11 @@
             <a href="weather.html" class="nav-item"><i class="fas fa-cloud-sun"></i><span>Météo</span></a>
             <a href="machines.html" class="nav-item"><i class="fas fa-helicopter"></i><span>Machines</span></a>
             <a href="members.html" class="nav-item"><i class="fas fa-users"></i><span>Membres</span></a>
-            <a href="news.html" class="nav-item"><i class="fas fa-newspaper"></i><span>Actualités</span></a>
-            <a href="baptemes.html" class="nav-item"><i class="fas fa-ticket-alt"></i><span>Baptêmes</span></a>
-            <a href="finances.html" class="nav-item"><i class="fas fa-euro-sign"></i><span>Finances</span></a>
+            <a href="baptemes.html" class="nav-item" data-role="admin"><i class="fas fa-ticket-alt"></i><span>Baptêmes</span></a>
         </nav>
+        <div class="sidebar-footer">
+            <a href="#" onclick="logout()" class="nav-item"><i class="fas fa-sign-out-alt"></i><span>Déconnexion</span></a>
+        </div>
     </div>
 
     <div class="main-content">
@@ -34,7 +35,7 @@
             <button class="btn-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
             <div class="header-right">
                 <div class="user-menu">
-                    <button class="btn-user"><span>Jean Dupont</span></button>
+                    <button class="btn-user"><span class="user-name">…</span></button>
                 </div>
             </div>
         </header>
@@ -55,9 +56,6 @@
                             <label class="form-label">Machine</label>
                             <select class="form-select" id="filterMachine">
                                 <option value="">Toutes les machines</option>
-                                <option value="ulm001">ULM-001 (Pendulaire)</option>
-                                <option value="ulm002">ULM-002 (Multiaxe)</option>
-                                <option value="ulm003">ULM-003 (Autogire)</option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -67,6 +65,7 @@
                                 <option value="confirmed">Confirmée</option>
                                 <option value="pending">En attente</option>
                                 <option value="cancelled">Annulée</option>
+                                <option value="completed">Effectuée</option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -127,62 +126,18 @@
                                         </tr>
                                     </thead>
                                     <tbody id="reservationsList">
-                                        <tr>
-                                            <td>16/11/2025</td>
-                                            <td>09:00 - 11:00</td>
-                                            <td>ULM-001</td>
-                                            <td>Marc Leroy</td>
-                                            <td><span class="badge bg-primary">Vol libre</span></td>
-                                            <td><span class="badge bg-success">Confirmée</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
-                                                <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
-                                                <button class="btn btn-sm btn-outline-danger"><i class="fas fa-times"></i></button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>16/11/2025</td>
-                                            <td>11:30 - 13:30</td>
-                                            <td>ULM-003</td>
-                                            <td>Sophie Martin</td>
-                                            <td><span class="badge bg-info">Formation</span></td>
-                                            <td><span class="badge bg-warning">En attente</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
-                                                <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
-                                                <button class="btn btn-sm btn-outline-danger"><i class="fas fa-times"></i></button>
-                                            </td>
-                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
 
-                        <!-- Vue Planning -->
+                        <!-- Vue Planning du jour -->
                         <div class="tab-pane fade" id="timelineView">
-                            <div class="timeline-container">
-                                <div class="timeline-header">
-                                    <h5>Planning du 16 Novembre 2025</h5>
-                                </div>
-                                <div class="timeline-grid">
-                                    <div class="timeline-machines">
-                                        <div class="machine-row">ULM-001</div>
-                                        <div class="machine-row">ULM-002</div>
-                                        <div class="machine-row">ULM-003</div>
-                                    </div>
-                                    <div class="timeline-slots">
-                                        <div class="time-row">
-                                            <div class="slot reserved" style="grid-column: 9 / 11;">Marc L. 9h-11h</div>
-                                        </div>
-                                        <div class="time-row">
-                                            <div class="slot reserved" style="grid-column: 14 / 16;">Baptême 14h-16h</div>
-                                        </div>
-                                        <div class="time-row">
-                                            <div class="slot reserved" style="grid-column: 11 / 13;">Sophie M. 11h30-13h30</div>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <label class="form-label mb-0" for="timelineDate">Jour :</label>
+                                <input type="date" class="form-control" id="timelineDate" style="max-width: 200px;">
                             </div>
+                            <div id="timelineContent"></div>
                         </div>
                     </div>
                 </div>
@@ -203,38 +158,30 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label">Machine *</label>
-                                <select class="form-select" required>
+                                <select class="form-select" id="resMachine" required>
                                     <option value="">Sélectionner une machine</option>
-                                    <option value="ulm001">ULM-001 (Pendulaire)</option>
-                                    <option value="ulm002">ULM-002 (Multiaxe)</option>
-                                    <option value="ulm003">ULM-003 (Autogire)</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Pilote *</label>
-                                <select class="form-select" required>
-                                    <option value="">Sélectionner un pilote</option>
-                                    <option value="pilot1">Marc Leroy</option>
-                                    <option value="pilot2">Sophie Martin</option>
-                                    <option value="pilot3">Pierre Dubois</option>
+                                <select class="form-select" id="resMember" required>
                                 </select>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Date *</label>
-                                <input type="date" class="form-control" required>
+                                <input type="date" class="form-control" id="resDate" required>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Heure début *</label>
-                                <input type="time" class="form-control" required>
+                                <input type="time" class="form-control" id="resStart" required>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Heure fin *</label>
-                                <input type="time" class="form-control" required>
+                                <input type="time" class="form-control" id="resEnd" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Type de vol *</label>
-                                <select class="form-select" required>
-                                    <option value="">Sélectionner un type</option>
+                                <select class="form-select" id="resType" required>
                                     <option value="libre">Vol libre</option>
                                     <option value="formation">Formation</option>
                                     <option value="bapteme">Baptême</option>
@@ -243,18 +190,19 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Instructeur (si formation)</label>
-                                <select class="form-select">
+                                <select class="form-select" id="resInstructor">
                                     <option value="">Pas d'instructeur</option>
-                                    <option value="inst1">Jean Instructor</option>
-                                    <option value="inst2">Marie Coach</option>
                                 </select>
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Remarques</label>
-                                <textarea class="form-control" rows="3"></textarea>
+                                <textarea class="form-control" id="resRemarks" rows="3"></textarea>
                             </div>
                         </div>
                     </form>
+                    <p class="text-muted small mt-3 mb-0">
+                        <i class="fas fa-info-circle"></i> Toute réservation est créée « en attente » puis validée par le bureau.
+                    </p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
@@ -269,6 +217,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales/fr.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/db.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/reservations.js"></script>
 </body>

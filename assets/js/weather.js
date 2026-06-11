@@ -2,14 +2,12 @@
 // WEATHER PAGE JAVASCRIPT
 // ============================================
 
-// Configuration API Météo
+// Configuration API Météo : clé et coordonnées du terrain dans config.js
 const WEATHER_CONFIG = {
-    // Pour une vraie implémentation, utilisez OpenWeatherMap API
-    apiKey: 'YOUR_OPENWEATHERMAP_API_KEY',
+    apiKey: (window.APP_CONFIG && window.APP_CONFIG.OPENWEATHER_API_KEY) || 'YOUR_OPENWEATHERMAP_API_KEY',
     apiUrl: 'https://api.openweathermap.org/data/2.5',
-    // Coordonnées de l'aérodrome (exemple: Marseille-Provence)
-    lat: 43.5352,
-    lon: 5.3672,
+    lat: (window.APP_CONFIG && window.APP_CONFIG.LATITUDE) || 43.5352,
+    lon: (window.APP_CONFIG && window.APP_CONFIG.LONGITUDE) || 5.3672,
     // METAR/TAF endpoint (exemple: Aviation Weather)
     metarUrl: 'https://avwx.rest/api'
 };
