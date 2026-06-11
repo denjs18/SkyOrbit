@@ -67,8 +67,8 @@ la V1. Rien d'autre ne doit retarder leur mise en service.
   des paiements de cotisations et baptêmes est en V1
 - Fil d'actualités / communication interne
 - Application mobile, PWA, mode hors ligne, notifications push
-- Tout ce qui est listé en « long terme » dans `RESUME_PROJET.md`
-  (IA, IoT, blockchain…) : non prioritaire
+- Les idées « long terme » du prototype initial (IA, IoT, blockchain…) :
+  non prioritaires
 
 La page météo existante est conservée telle quelle (il suffit d'une clé
 API), mais aucune amélioration météo n'est prévue en V1.

@@ -1,275 +1,100 @@
-# Guide d'Installation - ULM Gestion Club
+# Installation et mise en production
 
-## 📋 Prérequis
+Ce guide couvre le passage du mode démonstration à une vraie mise en
+service pour le club : base de données partagée, comptes réels, paiement
+des baptêmes et météo.
 
-### Serveur Web
-- **Serveur HTTP** : Apache 2.4+ ou Nginx 1.18+
-- **PHP** : Version 8.0 ou supérieure (pour la version backend complète)
-- **Base de données** : MySQL 8.0+ ou MariaDB 10.5+
-- **Node.js** : Version 16+ (optionnel, pour le développement)
+Durée estimée : **30 à 45 minutes**. Aucune compétence serveur n'est
+nécessaire, tout se fait depuis des interfaces web gratuites.
 
-### Configuration minimale
-- 2 Go de RAM
-- 10 Go d'espace disque
-- Connexion Internet pour les APIs météo
+---
 
-## 🚀 Installation
+## 1. Créer la base de données (Supabase)
 
-### Étape 1 : Téléchargement et Extraction
+1. Créez un compte sur [supabase.com](https://supabase.com) (gratuit).
+2. Créez un nouveau projet (région **West EU (Paris)** conseillée).
+   Notez le mot de passe de base de données demandé à la création.
+3. Une fois le projet prêt, ouvrez **SQL Editor → New query**, collez le
+   contenu complet de [`supabase/schema.sql`](supabase/schema.sql) et
+   cliquez sur **Run**. Cela crée les tables (membres, machines,
+   réservations, cotisations, baptêmes) et les règles de sécurité.
 
-```bash
-# Cloner ou extraire le projet dans votre dossier web
-cd /var/www/html
-# ou pour Windows avec XAMPP
-cd C:/xampp/htdocs
+## 2. Créer le compte du bureau
 
-# Extraire les fichiers
-unzip ulm-gestion-club.zip
-cd ulm-gestion-club
-```
+1. Dans Supabase : **Authentication → Users → Add user**.
+   Saisissez l'email et un mot de passe, cochez **Auto confirm**.
+2. Donnez le rôle administrateur à ce compte. Dans **SQL Editor** :
 
-### Étape 2 : Configuration de la Base de Données
-
-1. **Créer la base de données**
-
-```sql
-CREATE DATABASE ulm_gestion_club CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'ulm_user'@'localhost' IDENTIFIED BY 'votre_mot_de_passe_securise';
-GRANT ALL PRIVILEGES ON ulm_gestion_club.* TO 'ulm_user'@'localhost';
-FLUSH PRIVILEGES;
-```
-
-2. **Importer le schéma** (à créer pour la version complète)
-
-```bash
-mysql -u ulm_user -p ulm_gestion_club < database/schema.sql
-```
-
-### Étape 3 : Configuration de l'Application
-
-1. **Créer le fichier de configuration**
-
-Créer `config/config.php` :
-
-```php
-<?php
-return [
-    'database' => [
-        'host' => 'localhost',
-        'dbname' => 'ulm_gestion_club',
-        'username' => 'ulm_user',
-        'password' => 'votre_mot_de_passe_securise',
-        'charset' => 'utf8mb4'
-    ],
-
-    'api' => [
-        'openweather_key' => 'VOTRE_CLE_API_OPENWEATHERMAP',
-        'metar_endpoint' => 'https://avwx.rest/api',
-    ],
-
-    'site' => [
-        'name' => 'Mon Club ULM',
-        'email' => 'contact@monclub-ulm.fr',
-        'phone' => '01 23 45 67 89',
-        'address' => 'Adresse de votre aérodrome'
-    ],
-
-    'security' => [
-        'session_lifetime' => 3600, // 1 heure
-        'password_min_length' => 8,
-        'enable_2fa' => false
-    ]
-];
-```
-
-2. **Obtenir une clé API OpenWeatherMap** (gratuit)
-
-- Visitez https://openweathermap.org/api
-- Créez un compte gratuit
-- Générez une clé API
-- Copiez-la dans `config/config.php`
-
-### Étape 4 : Permissions des Fichiers
-
-```bash
-# Linux/Mac
-chmod -R 755 ulm-gestion-club
-chmod -R 777 uploads
-chmod 600 config/config.php
-
-# Vérifier que le serveur web peut écrire dans certains dossiers
-chown -R www-data:www-data uploads logs cache
-```
-
-### Étape 5 : Configuration du Serveur Web
-
-#### Apache (.htaccess déjà inclus)
-
-Assurez-vous que `mod_rewrite` est activé :
-
-```bash
-sudo a2enmod rewrite
-sudo systemctl restart apache2
-```
-
-#### Nginx
-
-Ajouter dans votre configuration de serveur :
-
-```nginx
-server {
-    listen 80;
-    server_name votre-domaine.fr;
-    root /var/www/html/ulm-gestion-club;
-    index index.html index.php;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.0-fpm.sock;
-        fastcgi_index index.php;
-        include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-    }
-
-    location ~ /\. {
-        deny all;
-    }
-}
-```
-
-### Étape 6 : Premier Lancement
-
-1. **Accéder à l'application**
-
-```
-http://localhost/ulm-gestion-club
-# ou
-http://votre-domaine.fr
-```
-
-2. **Connexion de démonstration**
-
-- **Admin** : `admin@ulm-club.fr` / `admin123`
-- **Instructeur** : `instructeur@ulm-club.fr` / `inst123`
-- **Pilote** : `pilote@ulm-club.fr` / `pilot123`
-
-⚠️ **IMPORTANT** : Changez immédiatement ces mots de passe après la première connexion !
-
-## 🔧 Configuration Avancée
-
-### Configurer les Emails
-
-Pour l'envoi d'emails (confirmations de réservation, etc.), configurer dans `config/email.php` :
-
-```php
-<?php
-return [
-    'smtp' => [
-        'host' => 'smtp.gmail.com',
-        'port' => 587,
-        'username' => 'votre-email@gmail.com',
-        'password' => 'votre-mot-de-passe-app',
-        'encryption' => 'tls'
-    ],
-    'from' => [
-        'email' => 'noreply@votre-club.fr',
-        'name' => 'Mon Club ULM'
-    ]
-];
-```
-
-### Configurer les Paiements en Ligne (optionnel)
-
-Pour accepter les paiements de baptêmes en ligne, configurer Stripe ou PayPal dans `config/payment.php`.
-
-### Personnalisation
-
-1. **Logo et Images**
-   - Remplacer `assets/img/logo.png` par votre logo
-   - Ajouter des photos de vos ULM dans `assets/img/machines/`
-
-2. **Couleurs et Design**
-   - Modifier les variables CSS dans `assets/css/style.css`
-   - Variables principales dans `:root`
-
-3. **Coordonnées GPS**
-   - Modifier les coordonnées dans `assets/js/weather.js` pour votre localisation
-
-## 📱 Version Mobile / PWA (optionnel)
-
-Pour installer comme application mobile :
-
-1. Ajouter `manifest.json` à la racine
-2. Enregistrer un Service Worker
-3. Les utilisateurs pourront "Installer l'application" depuis leur navigateur
-
-## 🔒 Sécurité
-
-### Recommandations Importantes
-
-1. **HTTPS Obligatoire** en production
-   ```bash
-   # Avec Let's Encrypt (gratuit)
-   sudo certbot --nginx -d votre-domaine.fr
+   ```sql
+   update profiles set role = 'admin' where email = 'votre@email.fr';
    ```
 
-2. **Sauvegardes Régulières**
-   ```bash
-   # Script de sauvegarde automatique
-   #!/bin/bash
-   mysqldump -u ulm_user -p ulm_gestion_club > backup_$(date +%Y%m%d).sql
-   tar -czf backup_files_$(date +%Y%m%d).tar.gz /var/www/html/ulm-gestion-club
-   ```
+3. Les autres membres se créent ensuite directement depuis la page
+   **Membres** de l'application (fiche membre), et leur compte de
+   connexion depuis **Authentication → Add user** avec le même email :
+   la fiche et le compte se lient automatiquement.
 
-3. **Mises à jour**
-   - Vérifier régulièrement les mises à jour
-   - Tester en environnement de développement avant la production
+## 3. Configurer l'application
 
-4. **Pare-feu**
-   ```bash
-   # Exemple avec UFW
-   sudo ufw allow 80/tcp
-   sudo ufw allow 443/tcp
-   sudo ufw enable
-   ```
+Ouvrez `assets/js/config.js` et renseignez :
 
-## 🐛 Dépannage
+| Clé | Où la trouver |
+|---|---|
+| `SUPABASE_URL` | Supabase → Settings → API → Project URL |
+| `SUPABASE_ANON_KEY` | Supabase → Settings → API → clé `anon public` |
+| `HELLOASSO_CAMPAIGN_URL` | URL de votre campagne HelloAsso (étape 5) |
+| `OPENWEATHER_API_KEY` | [openweathermap.org/api](https://openweathermap.org/api), offre gratuite |
+| `LATITUDE` / `LONGITUDE` | Coordonnées de votre terrain |
+| `FORMULES` | Tarifs et durées de vos baptêmes |
 
-### Problème de connexion à la base de données
+La clé `anon` est publique par conception : la sécurité repose sur les
+règles RLS du schéma SQL, pas sur le secret de cette clé.
 
-```bash
-# Vérifier que MySQL est démarré
-sudo systemctl status mysql
+Dès que `SUPABASE_URL` et `SUPABASE_ANON_KEY` sont renseignés, le mode
+démonstration disparaît : connexions et données passent par Supabase.
 
-# Tester la connexion
-mysql -u ulm_user -p
-```
+## 4. Déployer sur Vercel
 
-### Erreur 404 ou 500
+1. Créez un compte sur [vercel.com](https://vercel.com) (gratuit) et
+   importez le dépôt GitHub du projet (**Add New → Project**).
+2. Aucun réglage de build n'est nécessaire (site statique) : **Deploy**.
+3. Votre site est en ligne sur `https://votre-projet.vercel.app`.
+   Chaque `git push` sur la branche principale redéploie automatiquement.
+4. Optionnel : ajoutez un nom de domaine du club dans
+   **Settings → Domains**.
 
-- Vérifier les logs Apache/Nginx : `/var/log/apache2/error.log`
-- Vérifier les permissions des fichiers
-- Activer le mode debug dans `config/config.php`
+## 5. Paiement des baptêmes (HelloAsso)
 
-### API Météo ne fonctionne pas
+1. Créez le compte de l'association sur
+   [helloasso.com](https://www.helloasso.com) (gratuit, justificatifs
+   d'association demandés).
+2. Créez une campagne de type **Vente** ou **Billetterie** avec un tarif
+   par formule (Découverte, Sensation, Prestige).
+3. Copiez l'URL publique de la campagne dans `HELLOASSO_CAMPAIGN_URL`
+   (fichier `assets/js/config.js`).
 
-- Vérifier votre clé API OpenWeatherMap
-- Vérifier que le serveur peut faire des requêtes HTTP sortantes
-- Consulter la limite de requêtes gratuite (60 appels/minute)
+Fonctionnement : le client remplit le formulaire public (la demande
+apparaît « en attente » dans le back-office), puis paie sur HelloAsso.
+Le bureau rapproche le paiement reçu (email HelloAsso) de la demande,
+saisit la référence et passe le statut à « Payé ».
 
-## 📞 Support
+## 6. Vérifications finales
 
-Pour toute question ou problème :
+- [ ] Connexion avec le compte bureau → le menu « Baptêmes » est visible
+- [ ] Création d'une machine et d'un membre de test
+- [ ] Réservation d'un créneau avec le membre de test, validation avec le
+      compte bureau, clôture du vol → les heures s'ajoutent à la machine
+- [ ] Demande de baptême depuis la page publique (navigation privée,
+      sans connexion) → elle apparaît dans le back-office
+- [ ] Page météo avec la clé OpenWeatherMap
 
-- **Documentation complète** : `/docs`
-- **Issues GitHub** : [Signaler un bug](https://github.com/votre-repo/issues)
-- **Email** : support@ulm-gestion-club.fr
+## Dépannage
 
-## 🎉 Félicitations !
-
-Votre plateforme ULM Gestion Club est maintenant installée et prête à l'emploi.
-
-Profitez de toutes ses fonctionnalités pour gérer efficacement votre association !
+- **« Mode démonstration » reste affiché** : vérifiez `SUPABASE_URL` et
+  `SUPABASE_ANON_KEY` dans `assets/js/config.js`, puis videz le cache.
+- **Connexion refusée pour un membre** : son compte existe-t-il dans
+  Supabase → Authentication ? Sa fiche `profiles` est-elle `active` ?
+- **« Conflit : la machine est déjà réservée »** : c'est le comportement
+  attendu, le créneau chevauche une réservation non annulée.
+- **Un membre voit le menu Baptêmes** : son rôle n'est pas `admin` ?
+  Ce menu est réservé au bureau ; vérifiez sa fiche dans la page Membres.

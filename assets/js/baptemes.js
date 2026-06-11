@@ -1,244 +1,256 @@
 // ============================================
-// BAPTEMES PAGE JAVASCRIPT
+// BAPTEMES (ADMINISTRATION) - réservé au bureau
 // ============================================
+// Les demandes publiques arrivent en statut "pending" ; le bureau vérifie
+// le paiement HelloAsso, affecte pilote/machine puis fait vivre le statut :
+// pending -> paid -> done (ou cancelled).
 
-// Mock Baptemes Data
-const baptemesData = [
-    {
-        id: 'BAP-001',
-        date: '2025-11-16',
-        time: '14:00',
-        client: { nom: 'Rousseau', prenom: 'Marie', phone: '06 12 34 56 78', email: 'marie.r@email.fr' },
-        passengers: 1,
-        weight: 75,
-        formule: 'sensation',
-        prix: 120,
-        pilote: 'Marc Leroy',
-        paiement: { statut: 'paid', methode: 'card' },
-        statut: 'confirmed',
-        remarques: ''
-    },
-    {
-        id: 'BAP-002',
-        date: '2025-11-17',
-        time: '10:00',
-        client: { nom: 'Blanc', prenom: 'Thomas', phone: '06 98 76 54 32', email: 'thomas.blanc@email.fr' },
-        passengers: 1,
-        weight: 82,
-        formule: 'decouverte',
-        prix: 70,
-        pilote: 'Sophie Martin',
-        paiement: { statut: 'pending', methode: null },
-        statut: 'pending',
-        remarques: ''
-    },
-    {
-        id: 'BAP-003',
-        date: '2025-11-18',
-        time: '15:30',
-        client: { nom: 'Morel', prenom: 'Julie & Pierre', phone: '06 45 67 89 12', email: 'julie.morel@email.fr' },
-        passengers: 2,
-        weight: 155,
-        formule: 'prestige',
-        prix: 200,
-        pilote: 'Jean Instructor',
-        paiement: { statut: 'paid', methode: 'transfer' },
-        statut: 'confirmed',
-        remarques: 'Cadeau d\'anniversaire'
-    }
-];
+const FORMULES = window.APP_CONFIG.FORMULES;
 
-// Formules configuration
-const formules = {
-    decouverte: { nom: 'Découverte', prix: 70, duree: 15, description: '15 minutes de vol, survol de la région, photo souvenir' },
-    sensation: { nom: 'Sensation', prix: 120, duree: 30, description: '30 minutes de vol, prise en main, photos + vidéo' },
-    prestige: { nom: 'Prestige', prix: 200, duree: 60, description: '60 minutes de vol, pilotage accompagné, pack photos/vidéos, certificat' }
-};
+let baptemes = [];
+let pilots = [];
+let machinesList = [];
 
-// Statistics
-function calculateBaptemeStats() {
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
+function formulaInfo(key) {
+    return FORMULES[key] || { label: key, price: 0, duration: 0 };
+}
 
-    let monthCount = 0;
-    let monthRevenue = 0;
-    let pendingCount = 0;
-    let yearCount = 0;
+function getBaptemeStatusBadge(status) {
+    const badges = {
+        pending: '<span class="badge bg-warning"><i class="fas fa-clock"></i> En attente</span>',
+        paid: '<span class="badge bg-success"><i class="fas fa-check"></i> Payé</span>',
+        done: '<span class="badge bg-info"><i class="fas fa-flag-checkered"></i> Effectué</span>',
+        cancelled: '<span class="badge bg-danger"><i class="fas fa-times"></i> Annulé</span>'
+    };
+    return badges[status] || '<span class="badge bg-secondary">Inconnu</span>';
+}
 
-    baptemesData.forEach(bapteme => {
-        const baptemeDate = new Date(bapteme.date);
+function getFormuleBadge(key) {
+    const f = formulaInfo(key);
+    const colors = { decouverte: 'info', sensation: 'warning', prestige: 'danger' };
+    return `<span class="badge bg-${colors[key] || 'secondary'}">${escapeHtml(f.label)} (${f.price}€)</span>`;
+}
 
-        // Current month
-        if (baptemeDate.getMonth() === currentMonth && baptemeDate.getFullYear() === currentYear) {
-            monthCount++;
-            if (bapteme.paiement.statut === 'paid') {
-                monthRevenue += bapteme.prix;
+// ---------- Chargement ----------
+
+async function loadBaptemes() {
+    const members = await DB.listMembers();
+    pilots = members.filter(m => m.active && ['admin', 'instructor', 'pilot'].includes(m.role));
+    machinesList = (await DB.listMachines()).filter(m => m.active);
+    baptemes = await DB.listBaptemes();
+
+    renderFormuleCards();
+    populateBaptemeSelects();
+    renderBaptemes();
+    updateBaptemeStats();
+}
+
+function renderFormuleCards() {
+    Object.entries(FORMULES).forEach(([key, f]) => {
+        const priceEl = document.querySelector(`[data-price="${key}"]`);
+        if (priceEl) priceEl.textContent = f.price + '€';
+        const durationEl = document.querySelector(`[data-duration="${key}"]`);
+        if (durationEl) durationEl.textContent = f.duration + ' minutes de vol';
+    });
+}
+
+function populateBaptemeSelects() {
+    document.getElementById('bapPilot').innerHTML = '<option value="">À affecter</option>'
+        + pilots.map(p => `<option value="${p.id}">${escapeHtml(p.full_name)}</option>`).join('');
+    document.getElementById('bapMachine').innerHTML = '<option value="">À affecter</option>'
+        + machinesList.map(m => `<option value="${m.id}">${escapeHtml(m.registration)}</option>`).join('');
+    document.getElementById('bapFormula').innerHTML = Object.entries(FORMULES).map(([key, f]) =>
+        `<option value="${key}">${escapeHtml(f.label)} - ${f.price}€ (${f.duration} min)</option>`).join('');
+}
+
+// ---------- Statistiques ----------
+
+function updateBaptemeStats() {
+    const now = new Date();
+    let monthCount = 0, monthRevenue = 0, pendingCount = 0, yearCount = 0;
+
+    baptemes.forEach(b => {
+        if (b.status === 'cancelled') return;
+        const d = new Date(b.slot_at);
+        if (d.getFullYear() === now.getFullYear()) {
+            yearCount++;
+            if (d.getMonth() === now.getMonth()) {
+                monthCount++;
+                if (b.status === 'paid' || b.status === 'done') monthRevenue += Number(b.price);
             }
         }
-
-        // Current year
-        if (baptemeDate.getFullYear() === currentYear) {
-            yearCount++;
-        }
-
-        // Pending
-        if (bapteme.statut === 'pending') {
-            pendingCount++;
-        }
+        if (b.status === 'pending') pendingCount++;
     });
 
-    return { monthCount, monthRevenue, pendingCount, yearCount };
+    document.getElementById('statMonthCount').textContent = monthCount;
+    document.getElementById('statPendingCount').textContent = pendingCount;
+    document.getElementById('statMonthRevenue').textContent = monthRevenue.toLocaleString('fr-FR') + '€';
+    document.getElementById('statYearCount').textContent = yearCount;
 }
 
-// Update Stats Display
-function updateBaptemeStats() {
-    const stats = calculateBaptemeStats();
+// ---------- Liste ----------
 
-    // Update stat cards if they exist
-    console.log('Bapteme statistics:', stats);
-
-    // In a real implementation, update the DOM elements
-    // Example:
-    // document.querySelector('.stat-month-count').textContent = stats.monthCount;
+function pilotName(id) {
+    const p = pilots.find(x => x.id === id);
+    return p ? p.full_name : null;
 }
 
-// Get Payment Status Badge
-function getPaymentStatusBadge(statut) {
-    const badges = {
-        paid: '<span class="badge bg-success"><i class="fas fa-check"></i> Payé</span>',
-        pending: '<span class="badge bg-warning"><i class="fas fa-clock"></i> En attente</span>',
-        partial: '<span class="badge bg-info"><i class="fas fa-hourglass-half"></i> Acompte</span>',
-        refunded: '<span class="badge bg-danger"><i class="fas fa-undo"></i> Remboursé</span>'
-    };
-    return badges[statut] || '<span class="badge bg-secondary">Inconnu</span>';
+function machineRegistration(id) {
+    const m = machinesList.find(x => x.id === id);
+    return m ? m.registration : null;
 }
 
-// Get Bapteme Status Badge
-function getBaptemeStatusBadge(statut) {
-    const badges = {
-        confirmed: '<span class="badge bg-success">Confirmé</span>',
-        pending: '<span class="badge bg-warning">En attente</span>',
-        completed: '<span class="badge bg-info">Effectué</span>',
-        cancelled: '<span class="badge bg-danger">Annulé</span>'
-    };
-    return badges[statut] || '<span class="badge bg-secondary">Inconnu</span>';
+function renderBaptemes() {
+    const filter = document.getElementById('filterBaptemeStatus').value;
+    const tbody = document.getElementById('baptemesList');
+    const rows = baptemes.filter(b => !filter || b.status === filter);
+
+    if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-muted text-center">Aucun baptême</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = rows.map(b => `
+        <tr>
+            <td>${formatDate(b.slot_at)} ${formatTime(b.slot_at)}</td>
+            <td>${escapeHtml(b.customer_name)}</td>
+            <td>
+                ${b.customer_phone ? `<i class="fas fa-phone"></i> ${escapeHtml(b.customer_phone)}<br>` : ''}
+                <i class="fas fa-envelope"></i> ${escapeHtml(b.customer_email)}
+            </td>
+            <td>${getFormuleBadge(b.formula)}</td>
+            <td>${escapeHtml(pilotName(b.pilot_id) || '—')}</td>
+            <td>${escapeHtml(machineRegistration(b.machine_id) || '—')}</td>
+            <td>${getBaptemeStatusBadge(b.status)}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-warning" title="Modifier" onclick="editBapteme('${b.id}')"><i class="fas fa-edit"></i></button>
+                ${b.status === 'pending' ? `<button class="btn btn-sm btn-outline-success" title="Marquer payé" onclick="markBaptemePaid('${b.id}')"><i class="fas fa-euro-sign"></i></button>` : ''}
+                ${b.status === 'paid' ? `<button class="btn btn-sm btn-outline-info" title="Marquer effectué" onclick="markBaptemeDone('${b.id}')"><i class="fas fa-flag-checkered"></i></button>` : ''}
+                ${(b.status === 'pending' || b.status === 'paid') ? `<button class="btn btn-sm btn-outline-danger" title="Annuler" onclick="cancelBapteme('${b.id}')"><i class="fas fa-times"></i></button>` : ''}
+            </td>
+        </tr>
+    `).join('');
 }
 
-// Get Formule Badge
-function getFormuleBadge(formule) {
-    const config = formules[formule];
-    if (!config) return '<span class="badge bg-secondary">Inconnu</span>';
+// ---------- Actions ----------
 
-    const colors = {
-        decouverte: 'info',
-        sensation: 'warning',
-        prestige: 'danger'
-    };
+let editingBaptemeId = null;
 
-    return `<span class="badge bg-${colors[formule]}">${config.nom} (${config.prix}€)</span>`;
+function openBaptemeModal() {
+    editingBaptemeId = null;
+    document.getElementById('newBaptemeForm').reset();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('newBaptemeModal')).show();
 }
 
-// Save New Bapteme
-function saveBapteme() {
+function editBapteme(id) {
+    const b = baptemes.find(x => x.id === id);
+    if (!b) return;
+    editingBaptemeId = id;
+
+    document.getElementById('bapName').value = b.customer_name;
+    document.getElementById('bapEmail').value = b.customer_email;
+    document.getElementById('bapPhone').value = b.customer_phone || '';
+    document.getElementById('bapFormula').value = b.formula;
+    const d = new Date(b.slot_at);
+    document.getElementById('bapDate').value = d.toISOString().split('T')[0];
+    document.getElementById('bapTime').value = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    document.getElementById('bapPilot').value = b.pilot_id || '';
+    document.getElementById('bapMachine').value = b.machine_id || '';
+    document.getElementById('bapStatus').value = b.status === 'pending' ? 'pending' : 'paid';
+    document.getElementById('bapPaymentRef').value = b.payment_ref || '';
+    document.getElementById('bapNotes').value = b.notes || '';
+
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('newBaptemeModal')).show();
+}
+
+async function saveBapteme() {
     const form = document.getElementById('newBaptemeForm');
     if (!form.checkValidity()) {
         form.reportValidity();
         return;
     }
 
-    showLoading();
-
-    // Collect form data
-    const formData = new FormData(form);
-    const baptemeData = {
-        // Process form data here
-        // For demo purposes, we'll just show success
+    const formula = document.getElementById('bapFormula').value;
+    const fields = {
+        customer_name: document.getElementById('bapName').value.trim(),
+        customer_email: document.getElementById('bapEmail').value.trim(),
+        customer_phone: document.getElementById('bapPhone').value.trim(),
+        formula: formula,
+        price: formulaInfo(formula).price,
+        slot_at: new Date(`${document.getElementById('bapDate').value}T${document.getElementById('bapTime').value}`).toISOString(),
+        pilot_id: document.getElementById('bapPilot').value || null,
+        machine_id: document.getElementById('bapMachine').value || null,
+        status: document.getElementById('bapStatus').value,
+        payment_ref: document.getElementById('bapPaymentRef').value.trim() || null,
+        notes: document.getElementById('bapNotes').value.trim()
     };
 
-    // Simulate API call
-    setTimeout(() => {
-        hideLoading();
-        showSuccessToast('Baptême enregistré avec succès');
-
-        // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('newBaptemeModal'));
-        modal.hide();
-
-        // Reset form
-        form.reset();
-
-        // Refresh stats
+    try {
+        showLoading();
+        if (editingBaptemeId) {
+            await DB.updateBapteme(editingBaptemeId, fields);
+        } else {
+            // Création par le bureau : on passe outre les restrictions
+            // de la page publique via updateBapteme après insertion.
+            const created = await DB.createBapteme({
+                customer_name: fields.customer_name,
+                customer_email: fields.customer_email,
+                customer_phone: fields.customer_phone,
+                formula: fields.formula,
+                price: fields.price,
+                slot_at: fields.slot_at,
+                notes: fields.notes
+            });
+            if (fields.pilot_id || fields.machine_id || fields.status !== 'pending' || fields.payment_ref) {
+                await DB.updateBapteme(created.id, fields);
+            }
+        }
+        baptemes = await DB.listBaptemes();
+        renderBaptemes();
         updateBaptemeStats();
-    }, 1000);
+        bootstrap.Modal.getInstance(document.getElementById('newBaptemeModal')).hide();
+        form.reset();
+        editingBaptemeId = null;
+        showSuccessToast('Baptême enregistré');
+    } catch (e) {
+        showErrorToast(e.message);
+    } finally {
+        hideLoading();
+    }
 }
 
-// Confirm Bapteme
-function confirmBapteme(baptemeId) {
-    confirmDialog('Confirmer ce baptême ?', () => {
-        showLoading();
-
-        setTimeout(() => {
-            hideLoading();
-            showSuccessToast(`Baptême ${baptemeId} confirmé`);
-
-            // Update bapteme status
-            const bapteme = baptemesData.find(b => b.id === baptemeId);
-            if (bapteme) {
-                bapteme.statut = 'confirmed';
-            }
-
-            // Refresh display
+async function setBaptemeStatus(id, status, confirmMessage) {
+    confirmDialog(confirmMessage, async () => {
+        try {
+            showLoading();
+            await DB.updateBapteme(id, { status });
+            baptemes = await DB.listBaptemes();
+            renderBaptemes();
             updateBaptemeStats();
-        }, 1000);
+            showSuccessToast('Statut mis à jour');
+        } catch (e) {
+            showErrorToast(e.message);
+        } finally {
+            hideLoading();
+        }
     });
 }
 
-// Mark Bapteme as Completed
-function completeBapteme(baptemeId) {
-    confirmDialog('Marquer ce baptême comme effectué ?', () => {
-        showLoading();
-
-        setTimeout(() => {
-            hideLoading();
-            showSuccessToast(`Baptême ${baptemeId} marqué comme effectué`);
-
-            // Update bapteme status
-            const bapteme = baptemesData.find(b => b.id === baptemeId);
-            if (bapteme) {
-                bapteme.statut = 'completed';
-            }
-
-            // Refresh display
-            updateBaptemeStats();
-        }, 1000);
-    });
+function markBaptemePaid(id) {
+    setBaptemeStatus(id, 'paid', 'Confirmer la réception du paiement (HelloAsso ou autre) ?');
 }
 
-// Cancel Bapteme
-function cancelBapteme(baptemeId) {
-    confirmDialog('Annuler ce baptême ? Cette action est définitive.', () => {
-        showLoading();
+function markBaptemeDone(id) {
+    setBaptemeStatus(id, 'done', 'Marquer ce baptême comme effectué ?');
+}
 
-        setTimeout(() => {
-            hideLoading();
-            showSuccessToast(`Baptême ${baptemeId} annulé`);
-
-            // Update bapteme status
-            const bapteme = baptemesData.find(b => b.id === baptemeId);
-            if (bapteme) {
-                bapteme.statut = 'cancelled';
-            }
-
-            // Refresh display
-            updateBaptemeStats();
-        }, 1000);
-    });
+function cancelBapteme(id) {
+    setBaptemeStatus(id, 'cancelled', 'Annuler ce baptême ? Cette action est définitive.');
 }
 
 // Copy Widget Code
 function copyWidget() {
-    const code = document.querySelector('.code-block code').textContent;
-
+    const code = document.querySelector('.code-block code').textContent.trim();
     navigator.clipboard.writeText(code).then(() => {
         showSuccessToast('Code copié dans le presse-papiers');
     }).catch(() => {
@@ -246,73 +258,37 @@ function copyWidget() {
     });
 }
 
-// Send Confirmation Email
-function sendConfirmationEmail(baptemeId) {
-    showLoading();
-
-    setTimeout(() => {
-        hideLoading();
-        showSuccessToast('Email de confirmation envoyé');
-    }, 1000);
-}
-
-// Send Reminder
-function sendReminder(baptemeId) {
-    showLoading();
-
-    setTimeout(() => {
-        hideLoading();
-        showSuccessToast('Rappel envoyé au client');
-    }, 1000);
-}
-
-// Generate Invoice
-function generateInvoice(baptemeId) {
-    showLoading();
-
-    setTimeout(() => {
-        hideLoading();
-        showSuccessToast('Facture générée');
-        // In a real app, this would download a PDF
-    }, 1000);
-}
-
-// Update formule price when selected
-function updateFormulePrice() {
-    const formuleSelect = document.querySelector('#newBaptemeForm select[name="formule"]');
-    if (!formuleSelect) return;
-
-    formuleSelect.addEventListener('change', function() {
-        const formuleKey = this.value;
-        const formule = formules[formuleKey];
-
-        if (formule) {
-            showInfoToast(`Formule ${formule.nom} : ${formule.prix}€ - ${formule.duree} minutes`);
-        }
-    });
-}
-
 // Export functions
 window.saveBapteme = saveBapteme;
-window.confirmBapteme = confirmBapteme;
-window.completeBapteme = completeBapteme;
+window.editBapteme = editBapteme;
+window.markBaptemePaid = markBaptemePaid;
+window.markBaptemeDone = markBaptemeDone;
 window.cancelBapteme = cancelBapteme;
 window.copyWidget = copyWidget;
-window.sendConfirmationEmail = sendConfirmationEmail;
-window.sendReminder = sendReminder;
-window.generateInvoice = generateInvoice;
+window.openBaptemeModal = openBaptemeModal;
 
 // Initialize on page load
-window.addEventListener('load', function() {
-    updateBaptemeStats();
-    updateFormulePrice();
+window.addEventListener('load', async function() {
+    const session = await window.appReady;
+    if (!session) return;
 
-    // Check for URL parameters
+    // Page réservée au bureau
+    if (session.profile.role !== 'admin') {
+        window.location.href = 'dashboard.html';
+        return;
+    }
+
+    document.getElementById('filterBaptemeStatus').addEventListener('change', renderBaptemes);
+
+    try {
+        await loadBaptemes();
+    } catch (e) {
+        console.error(e);
+        showErrorToast('Impossible de charger les baptêmes : ' + e.message);
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('action') === 'new') {
-        setTimeout(() => {
-            const modal = new bootstrap.Modal(document.getElementById('newBaptemeModal'));
-            modal.show();
-        }, 500);
+        setTimeout(() => openBaptemeModal(), 300);
     }
 });

@@ -185,8 +185,8 @@
                 <div class="col-md-4">
                     <div class="price-card">
                         <h3><i class="fas fa-star text-warning"></i> Découverte</h3>
-                        <div class="price">70€</div>
-                        <p class="text-muted">15 minutes de vol</p>
+                        <div class="price" data-price="decouverte">60€</div>
+                        <p class="text-muted" data-duration="decouverte">15 minutes de vol</p>
                         <ul class="features">
                             <li><i class="fas fa-check"></i> Survol de la région</li>
                             <li><i class="fas fa-check"></i> Photo souvenir</li>
@@ -202,8 +202,8 @@
                     <div class="price-card popular">
                         <div class="popular-badge">Le plus populaire</div>
                         <h3><i class="fas fa-star text-warning"></i> Sensation</h3>
-                        <div class="price">120€</div>
-                        <p class="text-muted">30 minutes de vol</p>
+                        <div class="price" data-price="sensation">90€</div>
+                        <p class="text-muted" data-duration="sensation">30 minutes de vol</p>
                         <ul class="features">
                             <li><i class="fas fa-check"></i> Prise en main des commandes</li>
                             <li><i class="fas fa-check"></i> Photos + Vidéo</li>
@@ -218,8 +218,8 @@
                 <div class="col-md-4">
                     <div class="price-card">
                         <h3><i class="fas fa-star text-warning"></i> Prestige</h3>
-                        <div class="price">200€</div>
-                        <p class="text-muted">60 minutes de vol</p>
+                        <div class="price" data-price="prestige">150€</div>
+                        <p class="text-muted" data-duration="prestige">60 minutes de vol</p>
                         <ul class="features">
                             <li><i class="fas fa-check"></i> Pilotage accompagné</li>
                             <li><i class="fas fa-check"></i> Pack photos/vidéos complet</li>
@@ -247,50 +247,36 @@
                                         <label class="form-label">Formule sélectionnée *</label>
                                         <select class="form-select" id="formuleSelect" required>
                                             <option value="">Choisir une formule</option>
-                                            <option value="decouverte">Découverte - 70€ (15 min)</option>
-                                            <option value="sensation">Sensation - 120€ (30 min)</option>
-                                            <option value="prestige">Prestige - 200€ (60 min)</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label">Nombre de passagers *</label>
-                                        <select class="form-select" required>
-                                            <option value="1">1 personne</option>
-                                            <option value="2">2 personnes</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Nom *</label>
-                                        <input type="text" class="form-control" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Prénom *</label>
-                                        <input type="text" class="form-control" required>
+                                        <label class="form-label">Nom complet *</label>
+                                        <input type="text" class="form-control" id="pubName" required>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Email *</label>
-                                        <input type="email" class="form-control" required>
+                                        <input type="email" class="form-control" id="pubEmail" required>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Téléphone *</label>
-                                        <input type="tel" class="form-control" required>
+                                        <input type="tel" class="form-control" id="pubPhone" required>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Date souhaitée *</label>
-                                        <input type="date" class="form-control" required>
+                                        <input type="date" class="form-control" id="pubDate" required>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Créneau horaire préféré *</label>
-                                        <select class="form-select" required>
+                                        <select class="form-select" id="pubSlot" required>
                                             <option value="">Choisir un créneau</option>
-                                            <option value="morning">Matin (9h-12h)</option>
-                                            <option value="afternoon">Après-midi (14h-17h)</option>
-                                            <option value="evening">Fin de journée (17h-19h)</option>
+                                            <option value="10:00">Matin (9h-12h)</option>
+                                            <option value="14:00">Après-midi (14h-17h)</option>
+                                            <option value="17:00">Fin de journée (17h-19h)</option>
                                         </select>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label">Message / Remarques</label>
-                                        <textarea class="form-control" rows="3" placeholder="Occasion spéciale, allergies, questions..."></textarea>
+                                        <textarea class="form-control" id="pubMessage" rows="3" placeholder="Occasion spéciale, poids approximatif, questions..."></textarea>
                                     </div>
                                     <div class="col-12">
                                         <div class="form-check">
@@ -301,15 +287,27 @@
                                         </div>
                                     </div>
                                     <div class="col-12">
-                                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                                        <button type="submit" class="btn btn-primary btn-lg w-100" id="pubSubmitBtn">
                                             <i class="fas fa-paper-plane"></i> Envoyer ma demande de réservation
                                         </button>
                                         <p class="text-muted text-center mt-3 small">
-                                            Votre réservation sera confirmée par email dans les 24h
+                                            Votre demande sera confirmée par email après vérification des disponibilités et du paiement.
                                         </p>
                                     </div>
                                 </div>
                             </form>
+                            <div id="bookingSuccess" class="d-none">
+                                <div class="alert alert-success">
+                                    <h5><i class="fas fa-check-circle"></i> Demande enregistrée !</h5>
+                                    <p class="mb-0">Merci ! Le club va vérifier les disponibilités et vous recontacter par email.</p>
+                                </div>
+                                <div id="helloassoBlock" class="d-none text-center">
+                                    <p>Pour confirmer votre réservation, réglez dès maintenant via HelloAsso :</p>
+                                    <a id="helloassoLink" href="#" target="_blank" rel="noopener" class="btn btn-success btn-lg">
+                                        <i class="fas fa-credit-card"></i> Payer sur HelloAsso
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -371,14 +369,29 @@
         <div class="container">
             <p>&copy; 2026 Horizon Libre - Tous droits réservés</p>
             <p>
-                <a href="tel:0123456789" class="text-white"><i class="fas fa-phone"></i> 01 23 45 67 89</a> |
-                <a href="mailto:contact@ulm-club.fr" class="text-white"><i class="fas fa-envelope"></i> contact@ulm-club.fr</a>
+                <a href="mailto:contact@horizon-libre.fr" class="text-white"><i class="fas fa-envelope"></i> contact@horizon-libre.fr</a>
             </p>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/db.js"></script>
     <script>
+        const FORMULES = window.APP_CONFIG.FORMULES;
+
+        // Tarifs et durées affichés depuis la configuration
+        Object.entries(FORMULES).forEach(([key, f]) => {
+            const priceEl = document.querySelector(`[data-price="${key}"]`);
+            if (priceEl) priceEl.textContent = f.price + '€';
+            const durationEl = document.querySelector(`[data-duration="${key}"]`);
+            if (durationEl) durationEl.textContent = f.duration + ' minutes de vol';
+        });
+        document.getElementById('formuleSelect').innerHTML = '<option value="">Choisir une formule</option>'
+            + Object.entries(FORMULES).map(([key, f]) =>
+                `<option value="${key}">${f.label} - ${f.price}€ (${f.duration} min)</option>`).join('');
+
         function selectFormule(formule) {
             document.getElementById('formuleSelect').value = formule;
             document.getElementById('formules').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -388,10 +401,48 @@
             }, 2000);
         }
 
-        document.getElementById('publicBookingForm').addEventListener('submit', function(e) {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('pubDate').min = today;
+
+        document.getElementById('publicBookingForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            alert('Merci pour votre demande de réservation ! Vous recevrez une confirmation par email dans les 24h.');
-            this.reset();
+
+            const formula = document.getElementById('formuleSelect').value;
+            const date = document.getElementById('pubDate').value;
+            const slotTime = document.getElementById('pubSlot').value;
+            const slotLabel = document.getElementById('pubSlot').selectedOptions[0].textContent;
+            const message = document.getElementById('pubMessage').value.trim();
+
+            const btn = document.getElementById('pubSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Envoi en cours...';
+
+            try {
+                await DB.createBapteme({
+                    customer_name: document.getElementById('pubName').value.trim(),
+                    customer_email: document.getElementById('pubEmail').value.trim(),
+                    customer_phone: document.getElementById('pubPhone').value.trim(),
+                    formula: formula,
+                    price: FORMULES[formula].price,
+                    slot_at: new Date(`${date}T${slotTime}`).toISOString(),
+                    notes: `Créneau souhaité : ${slotLabel}.` + (message ? ` Message : ${message}` : '')
+                });
+
+                this.classList.add('d-none');
+                const success = document.getElementById('bookingSuccess');
+                success.classList.remove('d-none');
+
+                const helloasso = window.APP_CONFIG.HELLOASSO_CAMPAIGN_URL;
+                if (helloasso) {
+                    document.getElementById('helloassoLink').href = helloasso;
+                    document.getElementById('helloassoBlock').classList.remove('d-none');
+                }
+                success.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer ma demande de réservation';
+                alert('Erreur lors de l\'envoi : ' + err.message);
+            }
         });
     </script>
 </body>

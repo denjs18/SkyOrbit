@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Membres - Horizon Libre</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-plane-departure"></i>
+            <h3>Horizon Libre</h3>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Tableau de bord</span>
+            </a>
+            <a href="reservations.html" class="nav-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Réservations</span>
+            </a>
+            <a href="weather.html" class="nav-item">
+                <i class="fas fa-cloud-sun"></i>
+                <span>Météo</span>
+            </a>
+            <a href="machines.html" class="nav-item">
+                <i class="fas fa-helicopter"></i>
+                <span>Machines</span>
+            </a>
+            <a href="members.html" class="nav-item active">
+                <i class="fas fa-users"></i>
+                <span>Membres</span>
+            </a>
+            <a href="baptemes.html" class="nav-item" data-role="admin">
+                <i class="fas fa-ticket-alt"></i>
+                <span>Baptêmes</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="#" onclick="logout()" class="nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Déconnexion</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header class="top-header">
+            <button class="btn-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <div class="header-right">
+                <div class="weather-widget-mini">
+                    <i class="fas fa-wind"></i>
+                    <span id="windSpeed">12 km/h</span>
+                    <span class="direction" id="windDirection">NE</span>
+                </div>
+
+                <div class="notifications">
+                    <button class="btn-notification" data-bs-toggle="dropdown">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" id="notificationsMenu">
+                        <li><h6 class="dropdown-header">Notifications</h6></li>
+                        <li><span class="dropdown-item text-muted">Aucune notification</span></li>
+                    </ul>
+                </div>
+
+                <div class="user-menu dropdown">
+                    <button class="btn-user" data-bs-toggle="dropdown">
+                        <img src="assets/img/default-avatar.png" alt="User" class="user-avatar">
+                        <span class="user-name">Jean Dupont</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Members Content -->
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h1><i class="fas fa-users"></i> Membres</h1>
+                <button type="button" class="btn btn-primary" data-role="admin" onclick="openAddMemberModal()">
+                    <i class="fas fa-user-plus"></i> Ajouter un membre
+                </button>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="stat-card bg-primary">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="statActiveMembers">—</h3>
+                            <p>Membres actifs</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card bg-success">
+                        <div class="stat-icon">
+                            <i class="fas fa-euro-sign"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="statCotisationsPaid">—</h3>
+                            <p>Cotisations payées <span class="cotisation-year"></span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card bg-warning">
+                        <div class="stat-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="statExpiring">—</h3>
+                            <p>Licences / visites médicales expirant sous 60 jours</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Members Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-address-book"></i> Liste des membres</h5>
+                    <div class="input-group input-group-sm" style="max-width: 300px;">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="search" class="form-control" id="memberSearch" placeholder="Rechercher par nom ou email…" aria-label="Rechercher un membre">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Email</th>
+                                    <th>Téléphone</th>
+                                    <th>Rôle</th>
+                                    <th>N° licence</th>
+                                    <th>Expiration licence</th>
+                                    <th>Visite médicale</th>
+                                    <th>Cotisation <span class="cotisation-year"></span></th>
+                                    <th>Statut</th>
+                                    <th data-role="admin">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="membersTableBody">
+                                <tr><td colspan="10" class="text-muted">Chargement…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ajout / édition d'un membre -->
+    <div class="modal fade" id="memberModal" tabindex="-1" aria-labelledby="memberModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="memberModalTitle"><i class="fas fa-user-plus"></i> Ajouter un membre</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="memberForm">
+                        <input type="hidden" id="memberId">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="memberFullName" class="form-label">Nom complet <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="memberFullName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="memberEmail" class="form-label">Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="memberEmail" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="memberPhone" class="form-label">Téléphone</label>
+                                <input type="tel" class="form-control" id="memberPhone" placeholder="06 00 00 00 00">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="memberRole" class="form-label">Rôle</label>
+                                <select class="form-select" id="memberRole">
+                                    <option value="member" selected>Membre</option>
+                                    <option value="pilot">Pilote</option>
+                                    <option value="instructor">Instructeur</option>
+                                    <option value="admin">Bureau</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="memberLicenseNumber" class="form-label">N° licence</label>
+                                <input type="text" class="form-control" id="memberLicenseNumber" placeholder="ULM-00000">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="memberLicenseExpiry" class="form-label">Date expiration licence</label>
+                                <input type="date" class="form-control" id="memberLicenseExpiry">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="memberMedicalExpiry" class="form-label">Date visite médicale</label>
+                                <input type="date" class="form-control" id="memberMedicalExpiry">
+                            </div>
+                            <div class="col-12">
+                                <label for="memberQualifications" class="form-label">Qualifications</label>
+                                <textarea class="form-control" id="memberQualifications" rows="2" placeholder="Multiaxe, Pendulaire, Instructeur…"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" onclick="saveMember()">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal cotisation -->
+    <div class="modal fade" id="cotisationModal" tabindex="-1" aria-labelledby="cotisationModalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cotisationModalTitle"><i class="fas fa-euro-sign"></i> Cotisation <span class="cotisation-year"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="cotisationForm">
+                        <input type="hidden" id="cotisationMemberId">
+                        <p>Marquer la cotisation <span class="cotisation-year"></span> de <strong id="cotisationMemberName"></strong> comme payée.</p>
+                        <div class="mb-3">
+                            <label for="cotisationAmount" class="form-label">Montant (€) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="cotisationAmount" min="0" step="0.01" value="250" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-success" onclick="saveCotisation()">
+                        <i class="fas fa-check"></i> Marquer payée
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/db.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/members.js"></script>
+</body>
+</html>
