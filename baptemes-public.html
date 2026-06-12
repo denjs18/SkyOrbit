@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Réservez votre Baptême de l'Air en ULM - Horizon Libre</title>
+    <title>Réservez votre Baptême de l'Air en ULM - SkyOrbit</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -243,6 +243,12 @@
                         <div class="card-body p-4">
                             <form id="publicBookingForm">
                                 <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label">Club *</label>
+                                        <select class="form-select" id="pubClub" required>
+                                            <option value="">Chargement des clubs…</option>
+                                        </select>
+                                    </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Formule sélectionnée *</label>
                                         <select class="form-select" id="formuleSelect" required>
@@ -367,10 +373,8 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            <p>&copy; 2026 Horizon Libre - Tous droits réservés</p>
-            <p>
-                <a href="mailto:contact@horizon-libre.fr" class="text-white"><i class="fas fa-envelope"></i> contact@horizon-libre.fr</a>
-            </p>
+            <p>&copy; 2026 SkyOrbit</p>
+
         </div>
     </footer>
 
@@ -404,6 +408,28 @@
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('pubDate').min = today;
 
+        // La demande s'adresse à un club précis (?club=<id> pour pré-sélectionner)
+        (async function loadClubs() {
+            const select = document.getElementById('pubClub');
+            try {
+                const clubs = await DB.listClubs();
+                if (!clubs.length) {
+                    select.innerHTML = '<option value="">Aucun club disponible</option>';
+                    return;
+                }
+                select.innerHTML = clubs.map(c => {
+                    const div = document.createElement('div');
+                    div.textContent = c.name + (c.city ? ' — ' + c.city : '');
+                    return `<option value="${c.id}">${div.innerHTML}</option>`;
+                }).join('');
+                const wanted = new URLSearchParams(window.location.search).get('club');
+                select.value = (wanted && clubs.some(c => c.id === wanted)) ? wanted : clubs[0].id;
+            } catch (e) {
+                select.innerHTML = '<option value="">Clubs indisponibles</option>';
+                console.error(e);
+            }
+        })();
+
         document.getElementById('publicBookingForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -419,6 +445,7 @@
 
             try {
                 await DB.createBapteme({
+                    club_id: document.getElementById('pubClub').value,
                     customer_name: document.getElementById('pubName').value.trim(),
                     customer_email: document.getElementById('pubEmail').value.trim(),
                     customer_phone: document.getElementById('pubPhone').value.trim(),

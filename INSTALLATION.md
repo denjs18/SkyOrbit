@@ -19,20 +19,33 @@ nécessaire, tout se fait depuis des interfaces web gratuites.
    cliquez sur **Run**. Cela crée les tables (membres, machines,
    réservations, cotisations, baptêmes) et les règles de sécurité.
 
+   Le script crée aussi le **club fondateur Horizon Libre** (base LF3177
+   Toulouse Nord Fronton). Les clubs suivants s'inscrivent directement
+   en ligne via la page « Créer mon club ».
+
 ## 2. Créer le compte du bureau
 
 1. Dans Supabase : **Authentication → Users → Add user**.
    Saisissez l'email et un mot de passe, cochez **Auto confirm**.
-2. Donnez le rôle administrateur à ce compte. Dans **SQL Editor** :
+2. Rattachez ce compte au club fondateur avec le rôle administrateur.
+   Dans **SQL Editor** :
 
    ```sql
-   update profiles set role = 'admin' where email = 'votre@email.fr';
+   update profiles
+   set role = 'admin',
+       club_id = (select id from clubs where base_code = 'LF3177')
+   where email = 'votre@email.fr';
    ```
 
 3. Les autres membres se créent ensuite directement depuis la page
    **Membres** de l'application (fiche membre), et leur compte de
    connexion depuis **Authentication → Add user** avec le même email :
-   la fiche et le compte se lient automatiquement.
+   la fiche et le compte se lient automatiquement au club.
+4. **Important pour l'inscription des clubs en ligne** : dans
+   **Authentication → Sign In / Up → Email**, désactivez **Confirm
+   email**. Sinon, les fondateurs de nouveaux clubs devront confirmer
+   leur email puis revenir se connecter avant de pouvoir créer le club
+   (le flux le gère, mais c'est moins fluide).
 
 ## 3. Configurer l'application
 

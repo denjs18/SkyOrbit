@@ -101,7 +101,30 @@ des droits élargis.
 6. **Finitions** : alertes (licences, maintenance), nettoyage de la doc
    obsolète (PHP/MySQL), mise en production sur Vercel
 
-## 7. Décisions complémentaires (10/06/2026)
+## 7. Évolution V1.1 — plateforme multi-clubs (12/06/2026)
+
+SkyOrbit n'est plus l'outil d'un seul club mais une **plateforme** :
+
+- **Page d'accueil publique** (`index.html`) : vitrine des fonctionnalités
+  pour les aéro-clubs + annuaire des clubs enregistrés. La connexion est
+  déplacée sur `login.html`.
+- **Inscription d'un club** (`register-club.html`) : un visiteur crée un
+  compte puis son club, dont il devient automatiquement l'administrateur.
+- **Visibilité** : les informations de base d'un club (nom, base, ville,
+  description, contact) sont **publiques** (visibles sans compte). Toute
+  la vie du club — membres, réservations, machines, cotisations,
+  baptêmes — est **réservée à ses membres** (cloisonnement par règles
+  RLS en base). Ajouter une machine, un membre, etc. exige d'appartenir
+  au club (et le rôle bureau pour les écritures).
+- **Météo localisée** : chaque club a la latitude/longitude de son
+  terrain ; la page météo affiche les conditions exactes de la base du
+  club du membre connecté (OpenWeatherMap), avec prévisions agrégées.
+- **Club fondateur : Horizon Libre**, basé sur la plateforme ULM
+  **LF3177 « Toulouse Nord Fronton »** (Fronton, 31). Données de la fiche
+  BASULM : coordonnées N 43°52'04" / E 001°25'00" (43.8678, 1.4167),
+  piste en herbe 13/31 de 490 m, altitude 361 ft, radio 123,50.
+
+## 8. Décisions complémentaires (10/06/2026)
 
 - **Nom du club : Horizon Libre.** Coordonnées (adresse, téléphone,
   email) à fournir plus tard ; des valeurs génériques restent affichées
