@@ -6,10 +6,14 @@
 // Les scripts de page attendent window.appReady pour avoir la session.
 
 // Résolu avec { userId, profile } une fois l'utilisateur identifié.
+// Pose aussi window.CURRENT_USER et window.CURRENT_CLUB (club du membre).
 window.appReady = (async function () {
-    const isPublicPage = window.location.pathname.endsWith('index.html')
-        || window.location.pathname.endsWith('/')
-        || window.location.pathname.includes('baptemes-public');
+    const path = window.location.pathname;
+    const isPublicPage = path.endsWith('index.html')
+        || path.endsWith('/')
+        || path.endsWith('login.html')
+        || path.includes('register-club')
+        || path.includes('baptemes-public');
 
     let session = null;
     try {
@@ -19,17 +23,25 @@ window.appReady = (async function () {
     }
 
     if (!session && !isPublicPage) {
-        window.location.href = 'index.html';
+        window.location.href = 'login.html';
         return null;
     }
 
     window.CURRENT_USER = session ? session.profile : null;
+    window.CURRENT_CLUB = null;
+    if (session && session.profile.club_id) {
+        try {
+            window.CURRENT_CLUB = await DB.getClub(session.profile.club_id);
+        } catch (e) {
+            console.error('Erreur de chargement du club:', e);
+        }
+    }
     return session;
 })();
 
 async function logout() {
     await DB.signOut();
-    window.location.href = 'index.html';
+    window.location.href = 'login.html';
 }
 
 // Toggle Sidebar
@@ -49,6 +61,22 @@ function applySession(profile) {
         document.querySelectorAll('[data-role="admin"]').forEach(el => {
             el.classList.add('d-none');
         });
+    }
+    // Le nom du club du membre s'affiche dans la barre latérale
+    if (window.CURRENT_CLUB) {
+        document.querySelectorAll('.sidebar-header h3').forEach(el => {
+            el.innerHTML = 'SkyOrbit<br><small style="font-size:0.6em;font-weight:normal;opacity:0.8">'
+                + escapeHtml(window.CURRENT_CLUB.name) + '</small>';
+        });
+    }
+    // Compte sans club : tout est vide tant qu'un club ne l'a pas rattaché
+    if (!profile.club_id) {
+        const banner = document.createElement('div');
+        banner.className = 'alert alert-info text-center mb-0 rounded-0 py-2';
+        banner.innerHTML = '<i class="fas fa-info-circle"></i> Votre compte n\'est rattaché à aucun club : '
+            + 'demandez à l\'administrateur de votre club de vous ajouter (avec cet email), '
+            + 'ou <a href="register-club.html">créez votre club</a>.';
+        document.body.prepend(banner);
     }
 }
 

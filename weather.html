@@ -53,17 +53,17 @@
                         <div class="card-body">
                             <div class="weather-current">
                                 <div class="weather-location">
-                                    <h3><i class="fas fa-map-marker-alt"></i> Terrain d'ULM - Provence</h3>
-                                    <p class="text-muted">Mise à jour: <span id="updateTime">16/11/2025 14:30</span></p>
+                                    <h3><i class="fas fa-map-marker-alt"></i> <span id="weatherLocation">Terrain du club</span></h3>
+                                    <p class="text-muted">Mise à jour: <span id="updateTime">—</span></p>
                                 </div>
                                 <div class="weather-main-display">
                                     <div class="weather-icon-large">
-                                        <i class="fas fa-sun"></i>
+                                        <i class="fas fa-sun" id="weatherIconLarge"></i>
                                     </div>
                                     <div class="weather-temp-large">
-                                        <h1>22°C</h1>
-                                        <p>Ciel dégagé</p>
-                                        <p class="feels-like">Ressenti: 20°C</p>
+                                        <h1 id="weatherTemp">—</h1>
+                                        <p id="weatherCondition">—</p>
+                                        <p class="feels-like" id="weatherFeelsLike"></p>
                                     </div>
                                 </div>
                             </div>
@@ -105,14 +105,14 @@
                     <div class="card weather-detail-card">
                         <div class="card-body text-center">
                             <i class="fas fa-wind weather-icon-detail"></i>
-                            <h3 id="windSpeed">12 km/h</h3>
+                            <h3 id="windSpeed">—</h3>
                             <p>Vent</p>
                             <div class="wind-direction">
-                                <i class="fas fa-location-arrow" style="transform: rotate(45deg);"></i>
-                                <span>NE (45°)</span>
+                                <i class="fas fa-location-arrow"></i>
+                                <span id="windDirText">—</span>
                             </div>
                             <div class="wind-gusts mt-2">
-                                <small class="text-muted">Rafales: 18 km/h</small>
+                                <small class="text-muted" id="windGusts"></small>
                             </div>
                         </div>
                     </div>
@@ -122,9 +122,9 @@
                     <div class="card weather-detail-card">
                         <div class="card-body text-center">
                             <i class="fas fa-tint weather-icon-detail"></i>
-                            <h3>65%</h3>
+                            <h3 id="humidityVal">—</h3>
                             <p>Humidité</p>
-                            <small class="text-muted">Point de rosée: 15°C</small>
+                            <small class="text-muted" id="dewPointVal"></small>
                         </div>
                     </div>
                 </div>
@@ -133,9 +133,9 @@
                     <div class="card weather-detail-card">
                         <div class="card-body text-center">
                             <i class="fas fa-tachometer-alt weather-icon-detail"></i>
-                            <h3>1013 hPa</h3>
+                            <h3 id="pressureVal">—</h3>
                             <p>Pression</p>
-                            <small class="text-success"><i class="fas fa-arrow-up"></i> Stable</small>
+                            <small class="text-muted">QNH</small>
                         </div>
                     </div>
                 </div>
@@ -144,9 +144,9 @@
                     <div class="card weather-detail-card">
                         <div class="card-body text-center">
                             <i class="fas fa-eye weather-icon-detail"></i>
-                            <h3>10 km</h3>
+                            <h3 id="visibilityVal">—</h3>
                             <p>Visibilité</p>
-                            <small class="text-success">Excellente</small>
+                            <small class="text-muted"></small>
                         </div>
                     </div>
                 </div>
@@ -158,9 +158,9 @@
                     <div class="card weather-detail-card">
                         <div class="card-body text-center">
                             <i class="fas fa-cloud weather-icon-detail"></i>
-                            <h3>15%</h3>
+                            <h3 id="cloudsVal">—</h3>
                             <p>Couverture nuageuse</p>
-                            <small class="text-muted">Base: 2500m</small>
+                            <small class="text-muted"></small>
                         </div>
                     </div>
                 </div>
@@ -203,49 +203,8 @@
                     <h5><i class="fas fa-calendar-week"></i> Prévisions 7 jours</h5>
                 </div>
                 <div class="card-body">
-                    <div class="forecast-grid">
-                        <div class="forecast-day">
-                            <div class="day-name">Aujourd'hui</div>
-                            <i class="fas fa-sun forecast-icon"></i>
-                            <div class="temps">22° / 15°</div>
-                            <div class="wind-info"><i class="fas fa-wind"></i> 12 km/h</div>
-                        </div>
-                        <div class="forecast-day">
-                            <div class="day-name">Dimanche</div>
-                            <i class="fas fa-cloud-sun forecast-icon"></i>
-                            <div class="temps">20° / 14°</div>
-                            <div class="wind-info"><i class="fas fa-wind"></i> 15 km/h</div>
-                        </div>
-                        <div class="forecast-day">
-                            <div class="day-name">Lundi</div>
-                            <i class="fas fa-cloud forecast-icon"></i>
-                            <div class="temps">18° / 12°</div>
-                            <div class="wind-info"><i class="fas fa-wind"></i> 20 km/h</div>
-                        </div>
-                        <div class="forecast-day">
-                            <div class="day-name">Mardi</div>
-                            <i class="fas fa-cloud-rain forecast-icon"></i>
-                            <div class="temps">16° / 11°</div>
-                            <div class="wind-info"><i class="fas fa-wind"></i> 25 km/h</div>
-                        </div>
-                        <div class="forecast-day">
-                            <div class="day-name">Mercredi</div>
-                            <i class="fas fa-cloud-sun forecast-icon"></i>
-                            <div class="temps">19° / 13°</div>
-                            <div class="wind-info"><i class="fas fa-wind"></i> 18 km/h</div>
-                        </div>
-                        <div class="forecast-day">
-                            <div class="day-name">Jeudi</div>
-                            <i class="fas fa-sun forecast-icon"></i>
-                            <div class="temps">21° / 14°</div>
-                            <div class="wind-info"><i class="fas fa-wind"></i> 10 km/h</div>
-                        </div>
-                        <div class="forecast-day">
-                            <div class="day-name">Vendredi</div>
-                            <i class="fas fa-sun forecast-icon"></i>
-                            <div class="temps">23° / 16°</div>
-                            <div class="wind-info"><i class="fas fa-wind"></i> 8 km/h</div>
-                        </div>
+                    <div class="forecast-grid" id="forecastGrid">
+                        <p class="text-muted">Chargement des prévisions…</p>
                     </div>
                 </div>
             </div>

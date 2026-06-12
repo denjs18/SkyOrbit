@@ -67,26 +67,87 @@ const mockWeatherData = {
     }
 };
 
-// Fetch Real Weather Data (fonction pour implémentation future)
+function hasApiKey() {
+    return WEATHER_CONFIG.apiKey && WEATHER_CONFIG.apiKey !== 'YOUR_OPENWEATHERMAP_API_KEY';
+}
+
+// Récupère la météo réelle (OpenWeatherMap) et la convertit au format interne
 async function fetchRealWeather() {
-    try {
-        // Current weather
-        const weatherResponse = await fetch(
-            `${WEATHER_CONFIG.apiUrl}/weather?lat=${WEATHER_CONFIG.lat}&lon=${WEATHER_CONFIG.lon}&appid=${WEATHER_CONFIG.apiKey}&units=metric&lang=fr`
-        );
-        const weatherData = await weatherResponse.json();
+    const base = `lat=${WEATHER_CONFIG.lat}&lon=${WEATHER_CONFIG.lon}&appid=${WEATHER_CONFIG.apiKey}&units=metric&lang=fr`;
 
-        // Forecast
-        const forecastResponse = await fetch(
-            `${WEATHER_CONFIG.apiUrl}/forecast?lat=${WEATHER_CONFIG.lat}&lon=${WEATHER_CONFIG.lon}&appid=${WEATHER_CONFIG.apiKey}&units=metric&lang=fr`
-        );
-        const forecastData = await forecastResponse.json();
+    const weatherResponse = await fetch(`${WEATHER_CONFIG.apiUrl}/weather?${base}`);
+    const w = await weatherResponse.json();
+    if (!weatherResponse.ok) throw new Error(w.message || 'Erreur API météo');
 
-        return { current: weatherData, forecast: forecastData };
-    } catch (error) {
-        console.error('Error fetching weather:', error);
-        return null;
-    }
+    const forecastResponse = await fetch(`${WEATHER_CONFIG.apiUrl}/forecast?${base}`);
+    const f = await forecastResponse.json();
+    if (!forecastResponse.ok) throw new Error(f.message || 'Erreur API prévisions');
+
+    return { current: convertCurrent(w), forecast: convertForecast(f) };
+}
+
+function owmIcon(code) {
+    // Codes conditions OpenWeatherMap -> icônes Font Awesome
+    if (code >= 200 && code < 300) return 'fa-bolt';
+    if (code >= 300 && code < 600) return 'fa-cloud-rain';
+    if (code >= 600 && code < 700) return 'fa-snowflake';
+    if (code >= 700 && code < 800) return 'fa-smog';
+    if (code === 800) return 'fa-sun';
+    if (code === 801 || code === 802) return 'fa-cloud-sun';
+    return 'fa-cloud';
+}
+
+function windDirectionName(deg) {
+    const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
+    return dirs[Math.round(deg / 45) % 8];
+}
+
+function convertCurrent(w) {
+    const toTime = ts => {
+        const d = new Date(ts * 1000);
+        return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    };
+    return {
+        temp: Math.round(w.main.temp),
+        feelsLike: Math.round(w.main.feels_like),
+        condition: w.weather[0] ? w.weather[0].description : '',
+        icon: owmIcon(w.weather[0] ? w.weather[0].id : 800),
+        wind: {
+            speed: Math.round(w.wind.speed * 3.6),
+            direction: w.wind.deg || 0,
+            directionName: windDirectionName(w.wind.deg || 0),
+            gusts: w.wind.gust ? Math.round(w.wind.gust * 3.6) : null
+        },
+        humidity: w.main.humidity,
+        pressure: w.main.pressure,
+        visibility: w.visibility != null ? Math.round(w.visibility / 1000) : 10,
+        clouds: w.clouds ? w.clouds.all : 0,
+        sunrise: w.sys ? toTime(w.sys.sunrise) : '',
+        sunset: w.sys ? toTime(w.sys.sunset) : '',
+        dewPoint: null
+    };
+}
+
+// L'API /forecast donne des pas de 3 h sur 5 jours : on agrège par jour
+function convertForecast(f) {
+    const dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+    const byDay = {};
+    (f.list || []).forEach(item => {
+        const d = new Date(item.dt * 1000);
+        const key = d.toISOString().split('T')[0];
+        if (!byDay[key]) byDay[key] = { temps: [], winds: [], codes: [], date: d };
+        byDay[key].temps.push(item.main.temp);
+        byDay[key].winds.push(item.wind.speed * 3.6);
+        if (item.weather[0]) byDay[key].codes.push(item.weather[0].id);
+    });
+    const todayKey = new Date().toISOString().split('T')[0];
+    return Object.entries(byDay).slice(0, 7).map(([key, v]) => ({
+        day: key === todayKey ? "Aujourd'hui" : dayNames[v.date.getDay()],
+        icon: owmIcon(v.codes[Math.floor(v.codes.length / 2)] || 800),
+        tempMax: Math.round(Math.max(...v.temps)),
+        tempMin: Math.round(Math.min(...v.temps)),
+        wind: Math.round(Math.max(...v.winds))
+    }));
 }
 
 // Update Weather Display
@@ -96,32 +157,48 @@ function updateWeatherDisplay(data = mockWeatherData) {
     updateFlightConditions(data.current);
 }
 
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+}
+
 // Update Current Weather
 function updateCurrentWeather(current) {
-    // Update time
-    const updateTimeEl = document.getElementById('updateTime');
-    if (updateTimeEl) {
-        const now = new Date();
-        updateTimeEl.textContent = formatDateTime(now);
-    }
+    setText('updateTime', formatDateTime(new Date()));
+    setText('weatherTemp', current.temp + '°C');
+    setText('weatherCondition', current.condition);
+    setText('weatherFeelsLike', 'Ressenti: ' + current.feelsLike + '°C');
+    setText('windSpeed', current.wind.speed + ' km/h');
+    setText('windDirText', `${current.wind.directionName} (${current.wind.direction}°)`);
+    setText('windGusts', current.wind.gusts ? 'Rafales: ' + current.wind.gusts + ' km/h' : '');
+    setText('humidityVal', current.humidity + '%');
+    setText('dewPointVal', current.dewPoint != null ? 'Point de rosée: ' + current.dewPoint + '°C' : '');
+    setText('pressureVal', current.pressure + ' hPa');
+    setText('visibilityVal', current.visibility + ' km');
+    setText('cloudsVal', current.clouds + '%');
 
-    // Update wind speed in header if exists
-    const windSpeedEl = document.getElementById('windSpeed');
-    if (windSpeedEl) {
-        windSpeedEl.textContent = current.wind.speed + ' km/h';
-    }
+    const iconEl = document.getElementById('weatherIconLarge');
+    if (iconEl) iconEl.className = 'fas ' + current.icon;
 
     const windDirectionEl = document.getElementById('windDirection');
     if (windDirectionEl) {
         windDirectionEl.textContent = current.wind.directionName;
     }
+    updateWindArrow(current.wind.direction);
 }
 
 // Update Forecast
 function updateForecast(forecast) {
-    // The forecast display is already in the HTML
-    // In a real implementation, this would dynamically generate the forecast cards
-    console.log('Forecast data:', forecast);
+    const grid = document.getElementById('forecastGrid');
+    if (!grid || !forecast || !forecast.length) return;
+    grid.innerHTML = forecast.map(day => `
+        <div class="forecast-day">
+            <div class="day-name">${day.day}</div>
+            <i class="fas ${day.icon} forecast-icon"></i>
+            <div class="temps">${day.tempMax}° / ${day.tempMin}°</div>
+            <div class="wind-info"><i class="fas fa-wind"></i> ${day.wind} km/h</div>
+        </div>
+    `).join('');
 }
 
 // Update Flight Conditions
@@ -255,22 +332,24 @@ function updateWindArrow(degrees) {
 }
 
 // Refresh Weather
-function refreshWeather() {
-    showLoading();
-
-    // Simulate API call
-    setTimeout(() => {
-        // In production, call fetchRealWeather() here
+async function refreshWeather(silent = false) {
+    if (!hasApiKey()) {
         updateWeatherDisplay(mockWeatherData);
-        hideLoading();
-        showSuccessToast('Données météo actualisées');
-
-        // Update time
-        const updateTimeEl = document.getElementById('updateTime');
-        if (updateTimeEl) {
-            updateTimeEl.textContent = formatDateTime(new Date());
-        }
-    }, 1000);
+        if (!silent) showInfoToast('Clé OpenWeatherMap non configurée : données d\'exemple affichées');
+        return;
+    }
+    try {
+        if (!silent) showLoading();
+        const data = await fetchRealWeather();
+        updateWeatherDisplay(data);
+        if (!silent) showSuccessToast('Données météo actualisées');
+    } catch (e) {
+        console.error(e);
+        updateWeatherDisplay(mockWeatherData);
+        if (!silent) showErrorToast('Météo indisponible (' + e.message + ') : données d\'exemple affichées');
+    } finally {
+        if (!silent) hideLoading();
+    }
 }
 
 // Format DateTime
@@ -286,7 +365,7 @@ function formatDateTime(date) {
 // Auto-refresh weather
 function startWeatherAutoRefresh() {
     setInterval(() => {
-        refreshWeather();
+        refreshWeather(true);
     }, 300000); // Refresh every 5 minutes
 }
 
@@ -301,9 +380,20 @@ async function checkWeatherAlerts() {
 window.refreshWeather = refreshWeather;
 
 // Initialize on page load
-window.addEventListener('load', function() {
-    updateWeatherDisplay(mockWeatherData);
-    updateWindArrow(mockWeatherData.current.wind.direction);
+window.addEventListener('load', async function() {
+    // La météo est celle du terrain du club du membre connecté
+    if (window.appReady) await window.appReady;
+    const club = window.CURRENT_CLUB;
+    if (club && club.latitude != null && club.longitude != null) {
+        WEATHER_CONFIG.lat = club.latitude;
+        WEATHER_CONFIG.lon = club.longitude;
+    }
+    if (club) {
+        const parts = [club.base_name || club.name, club.base_code ? '(' + club.base_code + ')' : '', club.city ? '— ' + club.city : ''];
+        setText('weatherLocation', parts.filter(Boolean).join(' '));
+    }
+
+    await refreshWeather(true);
     startWeatherAutoRefresh();
 
     // Check for alerts

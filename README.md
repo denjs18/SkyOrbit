@@ -1,8 +1,11 @@
-# SkyOrbit — Gestion du club ULM Horizon Libre
+# SkyOrbit — La plateforme de gestion des aéro-clubs ULM
 
-Application web de gestion pour l'association d'ULM **Horizon Libre** :
-réservations de machines, membres et cotisations, carnet de maintenance,
-baptêmes de l'air payants (HelloAsso) et météo du terrain.
+Plateforme web multi-clubs : chaque aéro-club ULM s'inscrit, gère ses
+réservations de machines, ses membres et cotisations, son carnet de
+maintenance, ses baptêmes de l'air payants (HelloAsso) et la météo de
+son propre terrain. L'annuaire des clubs est public ; la vie de chaque
+club est réservée à ses membres. Club fondateur : **Horizon Libre**
+(base ULM LF3177 « Toulouse Nord Fronton », Fronton).
 
 Le périmètre fonctionnel et les décisions du projet sont documentés dans
 [CAHIER_DES_CHARGES.md](CAHIER_DES_CHARGES.md).
@@ -45,7 +48,9 @@ configuration des clés, déploiement Vercel et branchement HelloAsso.
 ## Structure
 
 ```
-index.html              Connexion
+index.html              Accueil public (vitrine + annuaire des clubs)
+login.html              Connexion
+register-club.html      Inscription d'un nouveau club
 dashboard.html          Tableau de bord (stats, alertes)
 reservations.html       Réservations (calendrier, liste, planning)
 members.html            Membres & cotisations
