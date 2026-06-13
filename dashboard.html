@@ -64,8 +64,8 @@
             <div class="header-right">
                 <div class="weather-widget-mini">
                     <i class="fas fa-wind"></i>
-                    <span id="windSpeed">12 km/h</span>
-                    <span class="direction" id="windDirection">NE</span>
+                    <span id="windSpeed">—</span>
+                    <span class="direction" id="windDirection"></span>
                 </div>
 
                 <div class="notifications">
@@ -160,33 +160,33 @@
                             <div class="weather-display">
                                 <div class="weather-main">
                                     <div class="weather-icon">
-                                        <i class="fas fa-sun"></i>
+                                        <i class="fas fa-sun" id="dashWeatherIcon"></i>
                                     </div>
                                     <div class="weather-temp">
-                                        <h2>22°C</h2>
-                                        <p>Ciel dégagé</p>
+                                        <h2 id="dashWeatherTemp">—</h2>
+                                        <p id="dashWeatherCondition">Chargement…</p>
                                     </div>
                                 </div>
                                 <div class="weather-details">
                                     <div class="weather-item">
                                         <i class="fas fa-wind"></i>
-                                        <span>Vent: 12 km/h NE</span>
+                                        <span id="dashWeatherWind">Vent : —</span>
                                     </div>
                                     <div class="weather-item">
                                         <i class="fas fa-tint"></i>
-                                        <span>Humidité: 65%</span>
+                                        <span id="dashWeatherHumidity">Humidité : —</span>
                                     </div>
                                     <div class="weather-item">
                                         <i class="fas fa-eye"></i>
-                                        <span>Visibilité: 10 km</span>
+                                        <span id="dashWeatherVisibility">Visibilité : —</span>
                                     </div>
                                     <div class="weather-item">
                                         <i class="fas fa-tachometer-alt"></i>
-                                        <span>Pression: 1013 hPa</span>
+                                        <span id="dashWeatherPressure">Pression : —</span>
                                     </div>
                                 </div>
                                 <div class="flight-conditions">
-                                    <span class="badge bg-success">Conditions excellentes pour voler</span>
+                                    <span class="badge bg-secondary" id="dashFlightBadge">Conditions en cours d'évaluation…</span>
                                 </div>
                             </div>
                         </div>
