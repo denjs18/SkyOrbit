@@ -2,14 +2,13 @@
 // WEATHER PAGE JAVASCRIPT
 // ============================================
 
-// Configuration API Météo : clé et coordonnées du terrain dans config.js
+// Coordonnées du terrain. La météo passe par la fonction serveur
+// /api/weather, qui détient la clé OpenWeatherMap côté serveur : la clé
+// n'est donc jamais exposée au navigateur. En mode démo / hors serveur,
+// l'appel échoue proprement et des données d'exemple sont affichées.
 const WEATHER_CONFIG = {
-    apiKey: (window.APP_CONFIG && window.APP_CONFIG.OPENWEATHER_API_KEY) || 'YOUR_OPENWEATHERMAP_API_KEY',
-    apiUrl: 'https://api.openweathermap.org/data/2.5',
-    lat: (window.APP_CONFIG && window.APP_CONFIG.LATITUDE) || 43.5352,
-    lon: (window.APP_CONFIG && window.APP_CONFIG.LONGITUDE) || 5.3672,
-    // METAR/TAF endpoint (exemple: Aviation Weather)
-    metarUrl: 'https://avwx.rest/api'
+    lat: (window.APP_CONFIG && window.APP_CONFIG.LATITUDE) || 43.8678,
+    lon: (window.APP_CONFIG && window.APP_CONFIG.LONGITUDE) || 1.4167
 };
 
 // Mock Weather Data
@@ -67,23 +66,14 @@ const mockWeatherData = {
     }
 };
 
-function hasApiKey() {
-    return WEATHER_CONFIG.apiKey && WEATHER_CONFIG.apiKey !== 'YOUR_OPENWEATHERMAP_API_KEY';
-}
-
-// Récupère la météo réelle (OpenWeatherMap) et la convertit au format interne
+// Récupère la météo réelle via la fonction serveur /api/weather (qui
+// détient la clé) et la convertit au format interne.
 async function fetchRealWeather() {
-    const base = `lat=${WEATHER_CONFIG.lat}&lon=${WEATHER_CONFIG.lon}&appid=${WEATHER_CONFIG.apiKey}&units=metric&lang=fr`;
-
-    const weatherResponse = await fetch(`${WEATHER_CONFIG.apiUrl}/weather?${base}`);
-    const w = await weatherResponse.json();
-    if (!weatherResponse.ok) throw new Error(w.message || 'Erreur API météo');
-
-    const forecastResponse = await fetch(`${WEATHER_CONFIG.apiUrl}/forecast?${base}`);
-    const f = await forecastResponse.json();
-    if (!forecastResponse.ok) throw new Error(f.message || 'Erreur API prévisions');
-
-    return { current: convertCurrent(w), forecast: convertForecast(f) };
+    const resp = await fetch(`/api/weather?lat=${WEATHER_CONFIG.lat}&lon=${WEATHER_CONFIG.lon}`);
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw new Error(data.error || 'Erreur API météo');
+    if (!data.current) throw new Error('Réponse météo vide');
+    return { current: convertCurrent(data.current), forecast: convertForecast(data.forecast) };
 }
 
 function owmIcon(code) {
@@ -333,20 +323,16 @@ function updateWindArrow(degrees) {
 
 // Refresh Weather
 async function refreshWeather(silent = false) {
-    if (!hasApiKey()) {
-        updateWeatherDisplay(mockWeatherData);
-        if (!silent) showInfoToast('Clé OpenWeatherMap non configurée : données d\'exemple affichées');
-        return;
-    }
     try {
         if (!silent) showLoading();
         const data = await fetchRealWeather();
         updateWeatherDisplay(data);
         if (!silent) showSuccessToast('Données météo actualisées');
     } catch (e) {
+        // Pas de serveur météo (mode démo) ou clé absente : repli sur l'exemple
         console.error(e);
         updateWeatherDisplay(mockWeatherData);
-        if (!silent) showErrorToast('Météo indisponible (' + e.message + ') : données d\'exemple affichées');
+        if (!silent) showInfoToast('Météo réelle indisponible : données d\'exemple affichées');
     } finally {
         if (!silent) hideLoading();
     }

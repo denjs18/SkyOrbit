@@ -56,12 +56,15 @@ Ouvrez `assets/js/config.js` et renseignez :
 | `SUPABASE_URL` | Supabase → Settings → API → Project URL |
 | `SUPABASE_ANON_KEY` | Supabase → Settings → API → clé `anon public` |
 | `HELLOASSO_CAMPAIGN_URL` | URL de votre campagne HelloAsso (étape 5) |
-| `OPENWEATHER_API_KEY` | [openweathermap.org/api](https://openweathermap.org/api), offre gratuite |
-| `LATITUDE` / `LONGITUDE` | Coordonnées de votre terrain |
+| `LATITUDE` / `LONGITUDE` | Coordonnées de repli si un club n'en a pas |
 | `FORMULES` | Tarifs et durées de vos baptêmes |
 
 La clé `anon` est publique par conception : la sécurité repose sur les
 règles RLS du schéma SQL, pas sur le secret de cette clé.
+
+La clé **OpenWeatherMap n'est pas dans ce fichier** : elle est détenue
+côté serveur par la fonction `/api/weather` (voir étape 4, variable
+d'environnement Vercel). Elle n'est donc jamais exposée au navigateur.
 
 Dès que `SUPABASE_URL` et `SUPABASE_ANON_KEY` sont renseignés, le mode
 démonstration disparaît : connexions et données passent par Supabase.
@@ -70,10 +73,17 @@ démonstration disparaît : connexions et données passent par Supabase.
 
 1. Créez un compte sur [vercel.com](https://vercel.com) (gratuit) et
    importez le dépôt GitHub du projet (**Add New → Project**).
-2. Aucun réglage de build n'est nécessaire (site statique) : **Deploy**.
-3. Votre site est en ligne sur `https://votre-projet.vercel.app`.
+2. Aucun réglage de build n'est nécessaire : **Deploy**. Vercel sert les
+   pages statiques et exécute automatiquement la fonction `api/weather.js`.
+3. **Activez la météo réelle** : dans **Settings → Environment
+   Variables**, ajoutez une variable nommée `OPENWEATHER_API_KEY` avec
+   votre clé [openweathermap.org/api](https://openweathermap.org/api)
+   (offre gratuite), pour les environnements *Production* et *Preview*,
+   puis redéployez (**Deployments → … → Redeploy**). La clé reste côté
+   serveur, jamais exposée au navigateur.
+4. Votre site est en ligne sur `https://votre-projet.vercel.app`.
    Chaque `git push` sur la branche principale redéploie automatiquement.
-4. Optionnel : ajoutez un nom de domaine du club dans
+5. Optionnel : ajoutez un nom de domaine du club dans
    **Settings → Domains**.
 
 ## 5. Paiement des baptêmes (HelloAsso)
@@ -99,7 +109,8 @@ saisit la référence et passe le statut à « Payé ».
       compte bureau, clôture du vol → les heures s'ajoutent à la machine
 - [ ] Demande de baptême depuis la page publique (navigation privée,
       sans connexion) → elle apparaît dans le back-office
-- [ ] Page météo avec la clé OpenWeatherMap
+- [ ] Page météo : conditions réelles du terrain (après ajout de la
+      variable `OPENWEATHER_API_KEY` dans Vercel)
 
 ## Dépannage
 
