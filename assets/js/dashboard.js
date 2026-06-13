@@ -138,6 +138,82 @@ function animateStatCards() {
     });
 }
 
+// ---------- Encart météo du tableau de bord ----------
+// Mêmes données que la page Météo (via /api/weather), pour le terrain du
+// club. Repli silencieux si la météo réelle n'est pas disponible.
+
+function dashOwmIcon(code) {
+    if (code >= 200 && code < 300) return 'fa-bolt';
+    if (code >= 300 && code < 600) return 'fa-cloud-rain';
+    if (code >= 600 && code < 700) return 'fa-snowflake';
+    if (code >= 700 && code < 800) return 'fa-smog';
+    if (code === 800) return 'fa-sun';
+    if (code === 801 || code === 802) return 'fa-cloud-sun';
+    return 'fa-cloud';
+}
+
+function dashWindDir(deg) {
+    return ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'][Math.round((deg || 0) / 45) % 8];
+}
+
+function dashFlightCondition(windKmh, visibilityKm) {
+    if (windKmh > 25 || visibilityKm < 5) {
+        return { cls: 'bg-danger', text: 'Conditions défavorables au vol' };
+    }
+    if (windKmh > 20 || visibilityKm < 8) {
+        return { cls: 'bg-warning', text: 'Vol possible avec prudence' };
+    }
+    return { cls: 'bg-success', text: 'Conditions favorables au vol' };
+}
+
+async function loadDashboardWeather() {
+    const club = window.CURRENT_CLUB;
+    const lat = (club && club.latitude != null) ? club.latitude
+        : (window.APP_CONFIG && window.APP_CONFIG.LATITUDE) || 43.8678;
+    const lon = (club && club.longitude != null) ? club.longitude
+        : (window.APP_CONFIG && window.APP_CONFIG.LONGITUDE) || 1.4167;
+
+    const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+
+    try {
+        const resp = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok || !data.current) throw new Error('météo indisponible');
+        const c = data.current;
+
+        const temp = Math.round(c.main.temp);
+        const windKmh = Math.round((c.wind.speed || 0) * 3.6);
+        const visKm = c.visibility != null ? Math.round(c.visibility / 1000) : 10;
+        const dir = dashWindDir(c.wind.deg);
+
+        set('dashWeatherTemp', temp + '°C');
+        set('dashWeatherCondition', c.weather[0] ? c.weather[0].description : '');
+        set('dashWeatherWind', `Vent : ${windKmh} km/h ${dir}`);
+        set('dashWeatherHumidity', `Humidité : ${c.main.humidity}%`);
+        set('dashWeatherVisibility', `Visibilité : ${visKm} km`);
+        set('dashWeatherPressure', `Pression : ${c.main.pressure} hPa`);
+
+        const iconEl = document.getElementById('dashWeatherIcon');
+        if (iconEl) iconEl.className = 'fas ' + dashOwmIcon(c.weather[0] ? c.weather[0].id : 800);
+
+        // Mini-widget de l'en-tête
+        set('windSpeed', windKmh + ' km/h');
+        set('windDirection', dir);
+
+        const badge = document.getElementById('dashFlightBadge');
+        if (badge) {
+            const cond = dashFlightCondition(windKmh, visKm);
+            badge.className = 'badge ' + cond.cls;
+            badge.textContent = cond.text;
+        }
+    } catch (e) {
+        console.error(e);
+        set('dashWeatherCondition', 'Météo indisponible');
+        const badge = document.getElementById('dashFlightBadge');
+        if (badge) { badge.className = 'badge bg-secondary'; badge.textContent = 'Météo indisponible'; }
+    }
+}
+
 // Initialize on page load
 window.addEventListener('load', async function() {
     const session = await window.appReady;
@@ -151,4 +227,6 @@ window.addEventListener('load', async function() {
         console.error(e);
         showErrorToast('Impossible de charger le tableau de bord : ' + e.message);
     }
+
+    loadDashboardWeather();
 });
