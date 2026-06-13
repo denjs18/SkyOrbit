@@ -24,7 +24,9 @@
     let memberModal = null;
     let cotisationModal = null;
     let resetCredentialsModal = null;
+    let credentialsResultModal = null;
     let searchTerm = '';
+    let _lastCreatedCredentials = null;
 
     // ---------- Helpers ----------
 
@@ -151,11 +153,15 @@
                     </button>
                 </div>`;
 
+            const emailDisplay = isPlaceholderEmail(m.email)
+                ? '<span class="text-muted small fst-italic">—</span>'
+                : escapeHtml(m.email || '');
+
             return `
                 <tr class="${m.active ? '' : 'table-secondary'}">
                     <td>${escapeHtml(m.full_name)}</td>
                     <td>${usernameBadge}</td>
-                    <td>${escapeHtml(m.email)}</td>
+                    <td>${emailDisplay}</td>
                     <td>${roleBadge(m.role)}</td>
                     <td>${expiryCell(m.license_expiry)}</td>
                     <td>${expiryCell(m.medical_expiry)}</td>
@@ -178,9 +184,16 @@
         form.reset();
         document.getElementById('memberId').value = '';
         document.getElementById('memberModalTitle').innerHTML = '<i class="fas fa-user-plus"></i> Ajouter un membre';
-        // Afficher la section mot de passe temporaire uniquement à la création
         const tempSection = document.getElementById('tempPasswordSection');
         if (tempSection) tempSection.style.display = '';
+        const credSection = document.getElementById('credentialsSection');
+        if (credSection) credSection.style.display = '';
+        // Pré-générer un mot de passe temporaire
+        const pwdEl = document.getElementById('memberTempPassword');
+        if (pwdEl && !pwdEl.value) pwdEl.value = makeTemp();
+        // Réinitialiser l'auto-suggestion de l'identifiant
+        const uEl = document.getElementById('memberUsername');
+        if (uEl) uEl.removeAttribute('data-manual');
         memberModal.show();
     }
 
@@ -210,6 +223,19 @@
         memberModal.show();
     }
 
+    // Génère un email interne non visible si le membre n'en a pas
+    function makePlaceholderEmail(username, fullName) {
+        const base = (username || fullName.toLowerCase()
+            .normalize('NFD').replace(/[̀-ͯ]/g, '')
+            .replace(/\s+/g, '.').replace(/[^a-z0-9._-]/g, ''));
+        const rand = Math.random().toString(36).slice(2, 7);
+        return `${base}.${rand}@noemail.skyorbit.internal`;
+    }
+
+    function isPlaceholderEmail(email) {
+        return email && email.endsWith('@noemail.skyorbit.internal');
+    }
+
     async function saveMember() {
         const form = document.getElementById('memberForm');
         if (!form.checkValidity()) {
@@ -220,10 +246,21 @@
         const id = document.getElementById('memberId').value;
         const username = document.getElementById('memberUsername').value.trim().toLowerCase();
         const tempPassword = document.getElementById('memberTempPassword').value.trim();
+        const fullName = document.getElementById('memberFullName').value.trim();
+        let email = document.getElementById('memberEmail').value.trim().toLowerCase();
+
+        // Email optionnel : générer un placeholder interne si vide
+        if (!email) {
+            if (!username && !id) {
+                showErrorToast('Renseignez au moins un identifiant ou un email.');
+                return;
+            }
+            email = makePlaceholderEmail(username, fullName);
+        }
 
         const fields = {
-            full_name: document.getElementById('memberFullName').value.trim(),
-            email: document.getElementById('memberEmail').value.trim(),
+            full_name: fullName,
+            email,
             phone: document.getElementById('memberPhone').value.trim(),
             role: document.getElementById('memberRole').value,
             license_number: document.getElementById('memberLicenseNumber').value.trim(),
@@ -240,17 +277,22 @@
                 const idx = members.findIndex(m => m.id === id);
                 if (idx >= 0) members[idx] = updated;
                 showSuccessToast('Membre mis à jour avec succès');
+                sortMembers();
+                memberModal.hide();
+                renderAll();
             } else {
                 const created = await DB.createMemberWithAccount({ ...fields, temp_password: tempPassword || null });
                 members.push(created);
-                const msg = tempPassword
-                    ? `Membre ajouté. Identifiant : ${username || fields.email} / Mot de passe temporaire : ${tempPassword}`
-                    : 'Membre ajouté (sans compte de connexion)';
-                showSuccessToast(msg);
+                sortMembers();
+                memberModal.hide();
+                renderAll();
+                if (tempPassword && username) {
+                    // Afficher la modale de confirmation des identifiants
+                    showCredentialsResult(fullName, username, tempPassword);
+                } else {
+                    showSuccessToast('Membre ajouté avec succès');
+                }
             }
-            sortMembers();
-            memberModal.hide();
-            renderAll();
         } catch (e) {
             showErrorToast(e.message);
         } finally {
@@ -327,6 +369,26 @@
             hideLoading();
         }
     }
+
+    // ---------- Confirmation des identifiants après création ----------
+
+    function showCredentialsResult(fullName, username, password) {
+        _lastCreatedCredentials = { fullName, username, password };
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        set('crMemberName', fullName);
+        set('crUsername', username);
+        set('crPassword', password);
+        set('crUrl', window.location.origin || 'sky-orbit.vercel.app');
+        if (credentialsResultModal) credentialsResultModal.show();
+    }
+
+    window.copyMemberCredentials = function () {
+        if (!_lastCreatedCredentials) return;
+        const { fullName, username, password } = _lastCreatedCredentials;
+        const url = window.location.origin || 'sky-orbit.vercel.app';
+        const text = `SkyOrbit — accès de ${fullName}\nIdentifiant : ${username}\nMot de passe : ${password}\nURL : ${url}`;
+        navigator.clipboard.writeText(text).then(() => showSuccessToast('Identifiants copiés dans le presse-papier'));
+    };
 
     // ---------- Réinitialisation des accès ----------
 
@@ -416,6 +478,23 @@
         memberModal = new bootstrap.Modal(document.getElementById('memberModal'));
         cotisationModal = new bootstrap.Modal(document.getElementById('cotisationModal'));
         resetCredentialsModal = new bootstrap.Modal(document.getElementById('resetCredentialsModal'));
+        credentialsResultModal = new bootstrap.Modal(document.getElementById('credentialsResultModal'));
+
+        // Auto-suggestion de l'identifiant depuis le nom complet
+        document.getElementById('memberFullName').addEventListener('input', function () {
+            const uEl = document.getElementById('memberUsername');
+            if (uEl && !uEl.dataset.manual) {
+                uEl.value = this.value.trim()
+                    .toLowerCase()
+                    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+                    .replace(/\s+/g, '.')
+                    .replace(/[^a-z0-9._-]/g, '')
+                    .slice(0, 32);
+            }
+        });
+        document.getElementById('memberUsername').addEventListener('input', function () {
+            this.dataset.manual = 'true';
+        });
 
         document.querySelectorAll('.cotisation-year').forEach(el => {
             el.textContent = CURRENT_YEAR;

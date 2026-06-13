@@ -203,19 +203,12 @@
                     <form id="memberForm">
                         <input type="hidden" id="memberId">
                         <div class="row g-3">
-                            <div class="col-md-6">
+                            <!-- Identité -->
+                            <div class="col-md-8">
                                 <label for="memberFullName" class="form-label">Nom complet <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="memberFullName" required>
                             </div>
-                            <div class="col-md-6">
-                                <label for="memberEmail" class="form-label">Email <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control" id="memberEmail" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="memberPhone" class="form-label">Téléphone</label>
-                                <input type="tel" class="form-control" id="memberPhone" placeholder="06 00 00 00 00">
-                            </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label for="memberRole" class="form-label">Rôle</label>
                                 <select class="form-select" id="memberRole">
                                     <option value="member" selected>Membre</option>
@@ -224,56 +217,65 @@
                                     <option value="admin">Bureau</option>
                                 </select>
                             </div>
+
+                            <!-- Accès à l'application (création) -->
+                            <div class="col-12" id="credentialsSection">
+                                <div class="p-3 rounded" style="background:rgba(14,34,72,0.04);border:1px solid var(--sko-line);">
+                                    <p class="page-kicker mb-2"><i class="fas fa-key"></i> Accès à l'application</p>
+                                    <div class="row g-3">
+                                        <div class="col-md-5">
+                                            <label for="memberUsername" class="form-label">Identifiant <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="memberUsername"
+                                                   placeholder="jean.dupont"
+                                                   pattern="[a-zA-Z0-9._-]{3,32}"
+                                                   title="3 à 32 caractères : lettres, chiffres, point, tiret ou underscore"
+                                                   autocomplete="off">
+                                            <div class="form-text">Utilisé pour se connecter.</div>
+                                        </div>
+                                        <div class="col-md-7" id="tempPasswordSection">
+                                            <label for="memberTempPassword" class="form-label">Mot de passe temporaire</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control font-monospace" id="memberTempPassword"
+                                                       placeholder="Laisser vide = compte non créé"
+                                                       autocomplete="off">
+                                                <button type="button" class="btn btn-outline-secondary"
+                                                        onclick="generateTempPassword()"
+                                                        title="Générer un mot de passe aléatoire">
+                                                    <i class="fas fa-dice"></i>
+                                                </button>
+                                            </div>
+                                            <div class="form-text">Le membre le changera à sa première connexion.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Coordonnées (toutes optionnelles) -->
+                            <div class="col-md-6">
+                                <label for="memberEmail" class="form-label">Email <small class="text-muted">(optionnel)</small></label>
+                                <input type="email" class="form-control" id="memberEmail" placeholder="jean.dupont@example.fr">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="memberPhone" class="form-label">Téléphone</label>
+                                <input type="tel" class="form-control" id="memberPhone" placeholder="06 00 00 00 00">
+                            </div>
+
+                            <!-- Dossier aéronautique -->
                             <div class="col-md-4">
                                 <label for="memberLicenseNumber" class="form-label">N° licence</label>
                                 <input type="text" class="form-control" id="memberLicenseNumber" placeholder="ULM-00000">
                             </div>
                             <div class="col-md-4">
-                                <label for="memberLicenseExpiry" class="form-label">Date expiration licence</label>
+                                <label for="memberLicenseExpiry" class="form-label">Expiration licence</label>
                                 <input type="date" class="form-control" id="memberLicenseExpiry">
                             </div>
                             <div class="col-md-4">
-                                <label for="memberMedicalExpiry" class="form-label">Date visite médicale</label>
+                                <label for="memberMedicalExpiry" class="form-label">Visite médicale</label>
                                 <input type="date" class="form-control" id="memberMedicalExpiry">
                             </div>
                             <div class="col-12">
                                 <label for="memberQualifications" class="form-label">Qualifications</label>
                                 <textarea class="form-control" id="memberQualifications" rows="2" placeholder="Multiaxe, Pendulaire, Instructeur…"></textarea>
-                            </div>
-
-                            <!-- Accès à l'application -->
-                            <div class="col-12 mt-1" id="credentialsSection">
-                                <hr class="my-2">
-                                <p class="fw-semibold mb-2 text-secondary small text-uppercase">
-                                    <i class="fas fa-key"></i> Accès à l'application
-                                </p>
-                                <div class="row g-3">
-                                    <div class="col-md-5">
-                                        <label for="memberUsername" class="form-label">Identifiant <small class="text-muted">(login)</small></label>
-                                        <input type="text" class="form-control" id="memberUsername"
-                                               placeholder="jean.dupont"
-                                               pattern="[a-zA-Z0-9._-]{3,32}"
-                                               title="3 à 32 caractères : lettres, chiffres, point, tiret ou underscore"
-                                               autocomplete="off">
-                                        <div class="form-text">Utilisé à la place de l'email pour se connecter.</div>
-                                    </div>
-                                    <div class="col-md-7" id="tempPasswordSection">
-                                        <label for="memberTempPassword" class="form-label">
-                                            Mot de passe temporaire
-                                        </label>
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" id="memberTempPassword"
-                                                   placeholder="Laisser vide = compte non créé"
-                                                   autocomplete="off">
-                                            <button type="button" class="btn btn-outline-secondary"
-                                                    onclick="generateTempPassword()"
-                                                    title="Générer un mot de passe aléatoire">
-                                                <i class="fas fa-dice"></i>
-                                            </button>
-                                        </div>
-                                        <div class="form-text">Le membre le changera à sa première connexion.</div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </form>
@@ -310,6 +312,44 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     <button type="button" class="btn btn-success" onclick="saveCotisation()">
                         <i class="fas fa-check"></i> Marquer payée
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal confirmation des identifiants créés -->
+    <div class="modal fade" id="credentialsResultModal" tabindex="-1" aria-labelledby="credentialsResultTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background:var(--sko-runway);color:#fff;">
+                    <h5 class="modal-title" id="credentialsResultTitle">
+                        <i class="fas fa-user-check"></i> Membre créé — identifiants à transmettre
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning py-2 mb-3">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Notez ces identifiants et transmettez-les au membre.
+                        Ils <strong>ne seront plus affichés</strong> après fermeture de cette fenêtre.
+                    </div>
+                    <div class="page-plate">
+                        <div class="plate-title"><i class="fas fa-id-card"></i> Accès à communiquer</div>
+                        <dl>
+                            <div class="row-line"><dt>Membre</dt><dd id="crMemberName">—</dd></div>
+                            <div class="row-line"><dt>Identifiant</dt><dd id="crUsername">—</dd></div>
+                            <div class="row-line"><dt>Mot de passe</dt><dd id="crPassword">—</dd></div>
+                            <div class="row-line"><dt>URL</dt><dd id="crUrl">—</dd></div>
+                        </dl>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" onclick="copyMemberCredentials()">
+                        <i class="fas fa-copy"></i> Copier
+                    </button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        <i class="fas fa-check"></i> C'est noté
                     </button>
                 </div>
             </div>
