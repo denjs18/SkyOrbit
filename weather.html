@@ -155,7 +155,7 @@
 
             <!-- Données supplémentaires -->
             <div class="row g-4 mb-4">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="card weather-detail-card">
                         <div class="card-body text-center">
                             <i class="fas fa-cloud weather-icon-detail"></i>
@@ -166,32 +166,21 @@
                     </div>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="card weather-detail-card">
                         <div class="card-body text-center">
                             <i class="fas fa-sun weather-icon-detail"></i>
-                            <h3>8/10</h3>
-                            <p>Indice UV</p>
-                            <small class="text-warning">Élevé</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="card weather-detail-card">
-                        <div class="card-body text-center">
-                            <i class="fas fa-sunrise weather-icon-detail"></i>
-                            <h3>07:24</h3>
+                            <h3 id="sunriseVal">—</h3>
                             <p>Lever du soleil</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="card weather-detail-card">
                         <div class="card-body text-center">
-                            <i class="fas fa-sunset weather-icon-detail"></i>
-                            <h3>17:42</h3>
+                            <i class="fas fa-moon weather-icon-detail"></i>
+                            <h3 id="sunsetVal">—</h3>
                             <p>Coucher du soleil</p>
                         </div>
                     </div>
@@ -211,28 +200,18 @@
             </div>
 
             <!-- METAR / TAF -->
+            <p class="text-muted small mb-2" id="metarStationNote">
+                <i class="fas fa-info-circle"></i> Un terrain ULM n'émet pas de METAR/TAF : les bulletins ci-dessous proviennent de la station aéronautique officielle la plus proche.
+            </p>
             <div class="row g-4">
                 <div class="col-lg-6">
                     <div class="card">
                         <div class="card-header">
-                            <h5><i class="fas fa-file-alt"></i> METAR</h5>
+                            <h5><i class="fas fa-file-alt"></i> METAR <small class="text-muted" id="metarStation"></small></h5>
                         </div>
                         <div class="card-body">
-                            <code class="metar-display">
-                                LFML 161430Z 04012KT 9999 FEW025 22/15 Q1013 NOSIG
-                            </code>
-                            <div class="metar-decode mt-3">
-                                <p><strong>Décodage:</strong></p>
-                                <ul class="list-unstyled">
-                                    <li><i class="fas fa-check text-success"></i> Aérodrome: LFML (Marseille)</li>
-                                    <li><i class="fas fa-check text-success"></i> Date/Heure: 16 Nov, 14:30 UTC</li>
-                                    <li><i class="fas fa-check text-success"></i> Vent: 040° à 12 kt</li>
-                                    <li><i class="fas fa-check text-success"></i> Visibilité: >10 km</li>
-                                    <li><i class="fas fa-check text-success"></i> Nuages: Peu de nuages à 2500 ft</li>
-                                    <li><i class="fas fa-check text-success"></i> Température: 22°C / Point de rosée: 15°C</li>
-                                    <li><i class="fas fa-check text-success"></i> QNH: 1013 hPa</li>
-                                </ul>
-                            </div>
+                            <code class="metar-display" id="metarRaw">Chargement…</code>
+                            <div class="metar-decode mt-3" id="metarDecode"></div>
                         </div>
                     </div>
                 </div>
@@ -240,22 +219,10 @@
                 <div class="col-lg-6">
                     <div class="card">
                         <div class="card-header">
-                            <h5><i class="fas fa-file-alt"></i> TAF (Prévisions)</h5>
+                            <h5><i class="fas fa-file-alt"></i> TAF (Prévisions) <small class="text-muted" id="tafStation"></small></h5>
                         </div>
                         <div class="card-body">
-                            <code class="metar-display">
-                                TAF LFML 161100Z 1612/1718 05015KT 9999 FEW030 SCT080<br>
-                                TEMPO 1615/1620 4000 SHRA BKN020CB
-                            </code>
-                            <div class="taf-decode mt-3">
-                                <p><strong>Prévisions:</strong></p>
-                                <ul class="list-unstyled">
-                                    <li><i class="fas fa-info-circle text-info"></i> Période: 16/12Z à 17/18Z</li>
-                                    <li><i class="fas fa-info-circle text-info"></i> Vent dominant: 050° à 15 kt</li>
-                                    <li><i class="fas fa-info-circle text-info"></i> Visibilité généralement >10 km</li>
-                                    <li><i class="fas fa-exclamation-triangle text-warning"></i> Temporairement 15h-20h: averses possibles, visibilité 4 km</li>
-                                </ul>
-                            </div>
+                            <code class="metar-display" id="tafRaw">Chargement…</code>
                         </div>
                     </div>
                 </div>

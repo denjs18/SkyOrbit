@@ -166,6 +166,8 @@ function updateCurrentWeather(current) {
     setText('pressureVal', current.pressure + ' hPa');
     setText('visibilityVal', current.visibility + ' km');
     setText('cloudsVal', current.clouds + '%');
+    if (current.sunrise) setText('sunriseVal', current.sunrise);
+    if (current.sunset) setText('sunsetVal', current.sunset);
 
     const iconEl = document.getElementById('weatherIconLarge');
     if (iconEl) iconEl.className = 'fas ' + current.icon;
@@ -338,6 +340,42 @@ async function refreshWeather(silent = false) {
     }
 }
 
+// Charge le METAR/TAF réel de la station officielle la plus proche
+// du terrain (via /api/metar). Repli silencieux si indisponible.
+async function loadMetar() {
+    const raw = document.getElementById('metarRaw');
+    const decode = document.getElementById('metarDecode');
+    const tafRaw = document.getElementById('tafRaw');
+    if (!raw) return;
+
+    try {
+        const resp = await fetch(`/api/metar?lat=${WEATHER_CONFIG.lat}&lon=${WEATHER_CONFIG.lon}`);
+        const d = await resp.json().catch(() => ({}));
+        if (!resp.ok || !d.found) throw new Error('indisponible');
+
+        const label = `${d.name} (${d.station}) · ≈ ${d.distance_km} km`;
+        setText('metarStation', '— ' + label);
+        setText('tafStation', '— ' + d.station);
+
+        raw.textContent = d.metar_raw || '—';
+        tafRaw.textContent = d.taf_raw || 'TAF non publié pour cette station.';
+
+        const rows = [];
+        rows.push(`<li><i class="fas fa-map-marker-alt text-success"></i> Station : ${escapeHtml(d.name)} (${escapeHtml(d.station)})</li>`);
+        if (d.flt_cat) rows.push(`<li><i class="fas fa-plane text-success"></i> Catégorie de vol : ${escapeHtml(d.flt_cat)}</li>`);
+        if (d.wspd != null) rows.push(`<li><i class="fas fa-wind text-success"></i> Vent : ${escapeHtml(String(d.wdir))}° à ${escapeHtml(String(d.wspd))} kt</li>`);
+        if (d.visib) rows.push(`<li><i class="fas fa-eye text-success"></i> Visibilité : ${escapeHtml(d.visib)} (mi/SM)</li>`);
+        if (d.temp != null) rows.push(`<li><i class="fas fa-temperature-half text-success"></i> Température : ${escapeHtml(String(d.temp))}°C / rosée ${escapeHtml(String(d.dewp))}°C</li>`);
+        if (d.altim != null) rows.push(`<li><i class="fas fa-gauge text-success"></i> QNH : ${escapeHtml(String(d.altim))} hPa</li>`);
+        decode.innerHTML = '<p class="mb-2"><strong>Décodage :</strong></p><ul class="list-unstyled">' + rows.join('') + '</ul>';
+    } catch (e) {
+        console.error(e);
+        raw.textContent = 'METAR indisponible pour le moment.';
+        if (tafRaw) tafRaw.textContent = 'TAF indisponible pour le moment.';
+        if (decode) decode.innerHTML = '';
+    }
+}
+
 // Format DateTime
 function formatDateTime(date) {
     const day = String(date.getDate()).padStart(2, '0');
@@ -380,6 +418,7 @@ window.addEventListener('load', async function() {
     }
 
     await refreshWeather(true);
+    loadMetar();
     startWeatherAutoRefresh();
 
     // Check for alerts
