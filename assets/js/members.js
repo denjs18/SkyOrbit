@@ -23,7 +23,10 @@
     let cotisations = [];
     let memberModal = null;
     let cotisationModal = null;
+    let resetCredentialsModal = null;
+    let credentialsResultModal = null;
     let searchTerm = '';
+    let _lastCreatedCredentials = null;
 
     // ---------- Helpers ----------
 
@@ -126,6 +129,11 @@
                 : '<span class="badge bg-secondary">Inactif</span>';
             const id = escapeAttr(m.id);
 
+            const usernameBadge = m.username
+                ? `<span class="badge bg-light text-dark border font-monospace">${escapeHtml(m.username)}</span>`
+                    + (m.must_change_password ? ' <span class="badge bg-warning text-dark" title="Doit changer de mot de passe"><i class="fas fa-key"></i></span>' : '')
+                : '<span class="text-muted">—</span>';
+
             const actions = `
                 <div class="btn-group btn-group-sm" role="group">
                     <button type="button" class="btn btn-outline-primary" data-action="edit" data-id="${id}" title="Éditer">
@@ -135,19 +143,26 @@
                         title="${paid ? 'Marquer la cotisation impayée' : 'Marquer la cotisation payée'}">
                         <i class="fas fa-euro-sign"></i>
                     </button>
+                    <button type="button" class="btn btn-outline-secondary" data-action="reset-credentials" data-id="${id}"
+                        title="Réinitialiser les accès (nouveau mot de passe temporaire)">
+                        <i class="fas fa-key"></i>
+                    </button>
                     <button type="button" class="btn btn-outline-${m.active ? 'danger' : 'success'}" data-action="toggle-active" data-id="${id}"
                         title="${m.active ? 'Désactiver le membre' : 'Activer le membre'}">
                         <i class="fas fa-${m.active ? 'user-slash' : 'user-check'}"></i>
                     </button>
                 </div>`;
 
+            const emailDisplay = isPlaceholderEmail(m.email)
+                ? '<span class="text-muted small fst-italic">—</span>'
+                : escapeHtml(m.email || '');
+
             return `
                 <tr class="${m.active ? '' : 'table-secondary'}">
                     <td>${escapeHtml(m.full_name)}</td>
-                    <td>${escapeHtml(m.email)}</td>
-                    <td>${m.phone ? escapeHtml(m.phone) : '<span class="text-muted">—</span>'}</td>
+                    <td>${usernameBadge}</td>
+                    <td>${emailDisplay}</td>
                     <td>${roleBadge(m.role)}</td>
-                    <td>${m.license_number ? escapeHtml(m.license_number) : '<span class="text-muted">—</span>'}</td>
                     <td>${expiryCell(m.license_expiry)}</td>
                     <td>${expiryCell(m.medical_expiry)}</td>
                     <td>${cotBadge}</td>
@@ -169,6 +184,16 @@
         form.reset();
         document.getElementById('memberId').value = '';
         document.getElementById('memberModalTitle').innerHTML = '<i class="fas fa-user-plus"></i> Ajouter un membre';
+        const tempSection = document.getElementById('tempPasswordSection');
+        if (tempSection) tempSection.style.display = '';
+        const credSection = document.getElementById('credentialsSection');
+        if (credSection) credSection.style.display = '';
+        // Pré-générer un mot de passe temporaire
+        const pwdEl = document.getElementById('memberTempPassword');
+        if (pwdEl && !pwdEl.value) pwdEl.value = makeTemp();
+        // Réinitialiser l'auto-suggestion de l'identifiant
+        const uEl = document.getElementById('memberUsername');
+        if (uEl) uEl.removeAttribute('data-manual');
         memberModal.show();
     }
 
@@ -188,8 +213,27 @@
         document.getElementById('memberLicenseExpiry').value = m.license_expiry || '';
         document.getElementById('memberMedicalExpiry').value = m.medical_expiry || '';
         document.getElementById('memberQualifications').value = m.qualifications || '';
+        document.getElementById('memberUsername').value = m.username || '';
+        // En édition, masquer le champ de mot de passe temporaire
+        // (utiliser le bouton "Réinitialiser les accès" à la place)
+        const tempSection = document.getElementById('tempPasswordSection');
+        if (tempSection) tempSection.style.display = 'none';
+        document.getElementById('memberTempPassword').value = '';
         document.getElementById('memberModalTitle').innerHTML = '<i class="fas fa-user-pen"></i> Modifier le membre';
         memberModal.show();
+    }
+
+    // Génère un email interne non visible si le membre n'en a pas
+    function makePlaceholderEmail(username, fullName) {
+        const base = (username || fullName.toLowerCase()
+            .normalize('NFD').replace(/[̀-ͯ]/g, '')
+            .replace(/\s+/g, '.').replace(/[^a-z0-9._-]/g, ''));
+        const rand = Math.random().toString(36).slice(2, 7);
+        return `${base}.${rand}@noemail.skyorbit.internal`;
+    }
+
+    function isPlaceholderEmail(email) {
+        return email && email.endsWith('@noemail.skyorbit.internal');
     }
 
     async function saveMember() {
@@ -200,15 +244,30 @@
         }
 
         const id = document.getElementById('memberId').value;
+        const username = document.getElementById('memberUsername').value.trim().toLowerCase();
+        const tempPassword = document.getElementById('memberTempPassword').value.trim();
+        const fullName = document.getElementById('memberFullName').value.trim();
+        let email = document.getElementById('memberEmail').value.trim().toLowerCase();
+
+        // Email optionnel : générer un placeholder interne si vide
+        if (!email) {
+            if (!username && !id) {
+                showErrorToast('Renseignez au moins un identifiant ou un email.');
+                return;
+            }
+            email = makePlaceholderEmail(username, fullName);
+        }
+
         const fields = {
-            full_name: document.getElementById('memberFullName').value.trim(),
-            email: document.getElementById('memberEmail').value.trim(),
+            full_name: fullName,
+            email,
             phone: document.getElementById('memberPhone').value.trim(),
             role: document.getElementById('memberRole').value,
             license_number: document.getElementById('memberLicenseNumber').value.trim(),
             license_expiry: document.getElementById('memberLicenseExpiry').value || null,
             medical_expiry: document.getElementById('memberMedicalExpiry').value || null,
-            qualifications: document.getElementById('memberQualifications').value.trim()
+            qualifications: document.getElementById('memberQualifications').value.trim(),
+            username: username || null
         };
 
         try {
@@ -218,14 +277,22 @@
                 const idx = members.findIndex(m => m.id === id);
                 if (idx >= 0) members[idx] = updated;
                 showSuccessToast('Membre mis à jour avec succès');
+                sortMembers();
+                memberModal.hide();
+                renderAll();
             } else {
-                const created = await DB.createMember(fields);
+                const created = await DB.createMemberWithAccount({ ...fields, temp_password: tempPassword || null });
                 members.push(created);
-                showSuccessToast('Membre ajouté avec succès');
+                sortMembers();
+                memberModal.hide();
+                renderAll();
+                if (tempPassword && username) {
+                    // Afficher la modale de confirmation des identifiants
+                    showCredentialsResult(fullName, username, tempPassword);
+                } else {
+                    showSuccessToast('Membre ajouté avec succès');
+                }
             }
-            sortMembers();
-            memberModal.hide();
-            renderAll();
         } catch (e) {
             showErrorToast(e.message);
         } finally {
@@ -303,6 +370,64 @@
         }
     }
 
+    // ---------- Confirmation des identifiants après création ----------
+
+    function showCredentialsResult(fullName, username, password) {
+        _lastCreatedCredentials = { fullName, username, password };
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        set('crMemberName', fullName);
+        set('crUsername', username);
+        set('crPassword', password);
+        set('crUrl', window.location.origin || 'sky-orbit.vercel.app');
+        if (credentialsResultModal) credentialsResultModal.show();
+    }
+
+    window.copyMemberCredentials = function () {
+        if (!_lastCreatedCredentials) return;
+        const { fullName, username, password } = _lastCreatedCredentials;
+        const url = window.location.origin || 'sky-orbit.vercel.app';
+        const text = `SkyOrbit — accès de ${fullName}\nIdentifiant : ${username}\nMot de passe : ${password}\nURL : ${url}`;
+        navigator.clipboard.writeText(text).then(() => showSuccessToast('Identifiants copiés dans le presse-papier'));
+    };
+
+    // ---------- Réinitialisation des accès ----------
+
+    function openResetCredentialsModal(id) {
+        const m = findMember(id);
+        if (!m) {
+            showErrorToast('Membre introuvable');
+            return;
+        }
+        document.getElementById('resetMemberId').value = m.id;
+        document.getElementById('resetMemberName').textContent = m.full_name || '';
+        document.getElementById('resetTempPassword').value = '';
+        resetCredentialsModal.show();
+    }
+
+    async function saveResetCredentials() {
+        const form = document.getElementById('resetCredentialsForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        const memberId = document.getElementById('resetMemberId').value;
+        const tempPassword = document.getElementById('resetTempPassword').value.trim();
+
+        try {
+            showLoading();
+            await DB.adminResetCredentials(memberId, tempPassword);
+            const m = findMember(memberId);
+            if (m) m.must_change_password = true;
+            resetCredentialsModal.hide();
+            renderAll();
+            showSuccessToast(`Accès réinitialisés. Mot de passe temporaire : ${tempPassword}`);
+        } catch (e) {
+            showErrorToast(e.message);
+        } finally {
+            hideLoading();
+        }
+    }
+
     // ---------- Activation / désactivation ----------
 
     function toggleActive(id) {
@@ -340,6 +465,7 @@
         const action = btn.getAttribute('data-action');
         if (action === 'edit') openEditMemberModal(id);
         else if (action === 'cotisation') toggleCotisation(id);
+        else if (action === 'reset-credentials') openResetCredentialsModal(id);
         else if (action === 'toggle-active') toggleActive(id);
     }
 
@@ -351,6 +477,24 @@
 
         memberModal = new bootstrap.Modal(document.getElementById('memberModal'));
         cotisationModal = new bootstrap.Modal(document.getElementById('cotisationModal'));
+        resetCredentialsModal = new bootstrap.Modal(document.getElementById('resetCredentialsModal'));
+        credentialsResultModal = new bootstrap.Modal(document.getElementById('credentialsResultModal'));
+
+        // Auto-suggestion de l'identifiant depuis le nom complet
+        document.getElementById('memberFullName').addEventListener('input', function () {
+            const uEl = document.getElementById('memberUsername');
+            if (uEl && !uEl.dataset.manual) {
+                uEl.value = this.value.trim()
+                    .toLowerCase()
+                    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+                    .replace(/\s+/g, '.')
+                    .replace(/[^a-z0-9._-]/g, '')
+                    .slice(0, 32);
+            }
+        });
+        document.getElementById('memberUsername').addEventListener('input', function () {
+            this.dataset.manual = 'true';
+        });
 
         document.querySelectorAll('.cotisation-year').forEach(el => {
             el.textContent = CURRENT_YEAR;
@@ -386,10 +530,29 @@
         }
     }
 
+    // Génère un mot de passe temporaire de 8 caractères
+    function makeTemp() {
+        const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+        let pwd = '';
+        const arr = new Uint8Array(8);
+        crypto.getRandomValues(arr);
+        arr.forEach(b => { pwd += chars[b % chars.length]; });
+        return pwd;
+    }
+
+    window.generateTempPassword = function () {
+        document.getElementById('memberTempPassword').value = makeTemp();
+    };
+
+    window.generateResetPassword = function () {
+        document.getElementById('resetTempPassword').value = makeTemp();
+    };
+
     // Fonctions appelées depuis le HTML (onclick)
     window.openAddMemberModal = openAddMemberModal;
     window.saveMember = saveMember;
     window.saveCotisation = saveCotisation;
+    window.saveResetCredentials = saveResetCredentials;
 
     init();
 })();

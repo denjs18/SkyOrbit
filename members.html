@@ -95,10 +95,23 @@
         <!-- Members Content -->
         <div class="content-wrapper">
             <div class="page-header">
-                <h1><i class="fas fa-users"></i> Membres</h1>
-                <button type="button" class="btn btn-primary" data-role="admin" onclick="openAddMemberModal()">
-                    <i class="fas fa-user-plus"></i> Ajouter un membre
-                </button>
+                <div class="page-masthead">
+                    <p class="page-kicker">Effectif · Licences · Cotisations</p>
+                    <h1><i class="fas fa-users"></i> Membres</h1>
+                    <p class="page-sub">Licences, visites médicales et cotisations suivies au même endroit, avec alertes avant échéance.</p>
+                </div>
+                <div class="page-actions">
+                    <button type="button" class="btn btn-primary" data-role="admin" onclick="openAddMemberModal()">
+                        <i class="fas fa-user-plus"></i> Ajouter un membre
+                    </button>
+                </div>
+            </div>
+
+            <!-- Indicateurs -->
+            <div class="section-head">
+                <span class="sh-kicker">Indicateurs</span>
+                <h2>Vue d'ensemble de l'effectif</h2>
+                <span class="sh-rule"></span>
             </div>
 
             <!-- Quick Stats -->
@@ -139,9 +152,14 @@
             </div>
 
             <!-- Members Table -->
+            <div class="section-head">
+                <span class="sh-kicker">Annuaire</span>
+                <h2>Liste des membres</h2>
+                <span class="sh-rule"></span>
+            </div>
             <div class="card">
                 <div class="card-header">
-                    <h5><i class="fas fa-address-book"></i> Liste des membres</h5>
+                    <h5><span class="card-kicker">MBR</span> <i class="fas fa-address-book"></i> Liste des membres</h5>
                     <div class="input-group input-group-sm" style="max-width: 300px;">
                         <span class="input-group-text"><i class="fas fa-search"></i></span>
                         <input type="search" class="form-control" id="memberSearch" placeholder="Rechercher par nom ou email…" aria-label="Rechercher un membre">
@@ -153,10 +171,9 @@
                             <thead>
                                 <tr>
                                     <th>Nom</th>
+                                    <th>Identifiant</th>
                                     <th>Email</th>
-                                    <th>Téléphone</th>
                                     <th>Rôle</th>
-                                    <th>N° licence</th>
                                     <th>Expiration licence</th>
                                     <th>Visite médicale</th>
                                     <th>Cotisation <span class="cotisation-year"></span></th>
@@ -165,7 +182,7 @@
                                 </tr>
                             </thead>
                             <tbody id="membersTableBody">
-                                <tr><td colspan="10" class="text-muted">Chargement…</td></tr>
+                                <tr><td colspan="9" class="text-muted">Chargement…</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -186,19 +203,12 @@
                     <form id="memberForm">
                         <input type="hidden" id="memberId">
                         <div class="row g-3">
-                            <div class="col-md-6">
+                            <!-- Identité -->
+                            <div class="col-md-8">
                                 <label for="memberFullName" class="form-label">Nom complet <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="memberFullName" required>
                             </div>
-                            <div class="col-md-6">
-                                <label for="memberEmail" class="form-label">Email <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control" id="memberEmail" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="memberPhone" class="form-label">Téléphone</label>
-                                <input type="tel" class="form-control" id="memberPhone" placeholder="06 00 00 00 00">
-                            </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label for="memberRole" class="form-label">Rôle</label>
                                 <select class="form-select" id="memberRole">
                                     <option value="member" selected>Membre</option>
@@ -207,16 +217,60 @@
                                     <option value="admin">Bureau</option>
                                 </select>
                             </div>
+
+                            <!-- Accès à l'application (création) -->
+                            <div class="col-12" id="credentialsSection">
+                                <div class="p-3 rounded" style="background:rgba(14,34,72,0.04);border:1px solid var(--sko-line);">
+                                    <p class="page-kicker mb-2"><i class="fas fa-key"></i> Accès à l'application</p>
+                                    <div class="row g-3">
+                                        <div class="col-md-5">
+                                            <label for="memberUsername" class="form-label">Identifiant <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="memberUsername"
+                                                   placeholder="jean.dupont"
+                                                   pattern="[a-zA-Z0-9._-]{3,32}"
+                                                   title="3 à 32 caractères : lettres, chiffres, point, tiret ou underscore"
+                                                   autocomplete="off">
+                                            <div class="form-text">Utilisé pour se connecter.</div>
+                                        </div>
+                                        <div class="col-md-7" id="tempPasswordSection">
+                                            <label for="memberTempPassword" class="form-label">Mot de passe temporaire</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control font-monospace" id="memberTempPassword"
+                                                       placeholder="Laisser vide = compte non créé"
+                                                       autocomplete="off">
+                                                <button type="button" class="btn btn-outline-secondary"
+                                                        onclick="generateTempPassword()"
+                                                        title="Générer un mot de passe aléatoire">
+                                                    <i class="fas fa-dice"></i>
+                                                </button>
+                                            </div>
+                                            <div class="form-text">Le membre le changera à sa première connexion.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Coordonnées (toutes optionnelles) -->
+                            <div class="col-md-6">
+                                <label for="memberEmail" class="form-label">Email <small class="text-muted">(optionnel)</small></label>
+                                <input type="email" class="form-control" id="memberEmail" placeholder="jean.dupont@example.fr">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="memberPhone" class="form-label">Téléphone</label>
+                                <input type="tel" class="form-control" id="memberPhone" placeholder="06 00 00 00 00">
+                            </div>
+
+                            <!-- Dossier aéronautique -->
                             <div class="col-md-4">
                                 <label for="memberLicenseNumber" class="form-label">N° licence</label>
                                 <input type="text" class="form-control" id="memberLicenseNumber" placeholder="ULM-00000">
                             </div>
                             <div class="col-md-4">
-                                <label for="memberLicenseExpiry" class="form-label">Date expiration licence</label>
+                                <label for="memberLicenseExpiry" class="form-label">Expiration licence</label>
                                 <input type="date" class="form-control" id="memberLicenseExpiry">
                             </div>
                             <div class="col-md-4">
-                                <label for="memberMedicalExpiry" class="form-label">Date visite médicale</label>
+                                <label for="memberMedicalExpiry" class="form-label">Visite médicale</label>
                                 <input type="date" class="form-control" id="memberMedicalExpiry">
                             </div>
                             <div class="col-12">
@@ -258,6 +312,85 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     <button type="button" class="btn btn-success" onclick="saveCotisation()">
                         <i class="fas fa-check"></i> Marquer payée
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal confirmation des identifiants créés -->
+    <div class="modal fade" id="credentialsResultModal" tabindex="-1" aria-labelledby="credentialsResultTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background:var(--sko-runway);color:#fff;">
+                    <h5 class="modal-title" id="credentialsResultTitle">
+                        <i class="fas fa-user-check"></i> Membre créé — identifiants à transmettre
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning py-2 mb-3">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Notez ces identifiants et transmettez-les au membre.
+                        Ils <strong>ne seront plus affichés</strong> après fermeture de cette fenêtre.
+                    </div>
+                    <div class="page-plate">
+                        <div class="plate-title"><i class="fas fa-id-card"></i> Accès à communiquer</div>
+                        <dl>
+                            <div class="row-line"><dt>Membre</dt><dd id="crMemberName">—</dd></div>
+                            <div class="row-line"><dt>Identifiant</dt><dd id="crUsername">—</dd></div>
+                            <div class="row-line"><dt>Mot de passe</dt><dd id="crPassword">—</dd></div>
+                            <div class="row-line"><dt>URL</dt><dd id="crUrl">—</dd></div>
+                        </dl>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" onclick="copyMemberCredentials()">
+                        <i class="fas fa-copy"></i> Copier
+                    </button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        <i class="fas fa-check"></i> C'est noté
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal réinitialisation des accès -->
+    <div class="modal fade" id="resetCredentialsModal" tabindex="-1" aria-labelledby="resetCredentialsTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resetCredentialsTitle">
+                        <i class="fas fa-key"></i> Réinitialiser les accès
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Réinitialiser les accès de <strong id="resetMemberName"></strong>.</p>
+                    <p class="text-muted small">
+                        Un nouveau mot de passe temporaire lui sera assigné. Le membre devra le changer à sa prochaine connexion.
+                    </p>
+                    <form id="resetCredentialsForm">
+                        <input type="hidden" id="resetMemberId">
+                        <div class="mb-3">
+                            <label for="resetTempPassword" class="form-label">Mot de passe temporaire <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="resetTempPassword"
+                                       required autocomplete="off" placeholder="Nouveau mot de passe temporaire">
+                                <button type="button" class="btn btn-outline-secondary"
+                                        onclick="generateResetPassword()"
+                                        title="Générer un mot de passe aléatoire">
+                                    <i class="fas fa-dice"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-warning" onclick="saveResetCredentials()">
+                        <i class="fas fa-key"></i> Réinitialiser
                     </button>
                 </div>
             </div>

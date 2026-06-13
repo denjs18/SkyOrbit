@@ -28,6 +28,13 @@ window.appReady = (async function () {
     }
 
     window.CURRENT_USER = session ? session.profile : null;
+
+    // Première connexion : l'utilisateur doit configurer ses identifiants
+    if (session && session.profile.must_change_password && !path.endsWith('setup-credentials.html')) {
+        window.location.href = 'setup-credentials.html';
+        return null;
+    }
+
     window.CURRENT_CLUB = null;
     if (session && session.profile.club_id) {
         try {

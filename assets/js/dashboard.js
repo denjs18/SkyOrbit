@@ -214,12 +214,23 @@ async function loadDashboardWeather() {
     }
 }
 
+// Remplit la plaque technique « terrain du club » du masthead.
+function fillDashboardPlate() {
+    const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+    const club = window.CURRENT_CLUB;
+    set('plateClubName', club && club.name ? club.name : '—');
+    set('plateBaseCode', club && club.base_code ? club.base_code : '—');
+    set('plateBaseName', club && club.base_name ? club.base_name : (club && club.city ? club.city : '—'));
+    set('plateDate', new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }));
+}
+
 // Initialize on page load
 window.addEventListener('load', async function() {
     const session = await window.appReady;
     if (!session) return;
 
     animateStatCards();
+    fillDashboardPlate();
 
     try {
         await loadDashboard();

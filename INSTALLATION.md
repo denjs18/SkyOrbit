@@ -38,9 +38,16 @@ nécessaire, tout se fait depuis des interfaces web gratuites.
    ```
 
 3. Les autres membres se créent ensuite directement depuis la page
-   **Membres** de l'application (fiche membre), et leur compte de
-   connexion depuis **Authentication → Add user** avec le même email :
-   la fiche et le compte se lient automatiquement au club.
+   **Membres** de l'application (fiche membre). Si la variable
+   `SUPABASE_SERVICE_ROLE_KEY` est configurée dans Vercel (étape 4.3),
+   l'administrateur peut créer le compte de connexion en même temps
+   (champ « Identifiant » et « Mot de passe temporaire » dans le formulaire).
+   À la première connexion, le membre est invité à personnaliser ses
+   identifiants.
+
+   Sans la clé service, créez le compte depuis **Authentication → Add
+   user** avec le même email : la fiche et le compte se lient
+   automatiquement.
 4. **Important pour l'inscription des clubs en ligne** : dans
    **Authentication → Sign In / Up → Email**, désactivez **Confirm
    email**. Sinon, les fondateurs de nouveaux clubs devront confirmer
@@ -75,15 +82,24 @@ démonstration disparaît : connexions et données passent par Supabase.
    importez le dépôt GitHub du projet (**Add New → Project**).
 2. Aucun réglage de build n'est nécessaire : **Deploy**. Vercel sert les
    pages statiques et exécute automatiquement la fonction `api/weather.js`.
-3. **Activez la météo réelle** : dans **Settings → Environment
-   Variables**, ajoutez une variable nommée `OPENWEATHER_API_KEY` avec
-   votre clé [openweathermap.org/api](https://openweathermap.org/api)
-   (offre gratuite), pour les environnements *Production* et *Preview*,
-   puis redéployez (**Deployments → … → Redeploy**). La clé reste côté
-   serveur, jamais exposée au navigateur.
-4. Votre site est en ligne sur `https://votre-projet.vercel.app`.
+3. **Activez la création de comptes membres** : dans **Settings →
+   Environment Variables**, ajoutez deux variables pour les
+   environnements *Production* et *Preview* :
+   - `SUPABASE_URL` — la même URL que dans `config.js`
+   - `SUPABASE_SERVICE_ROLE_KEY` — Supabase → Settings → API → clé
+     `service_role` (**gardez-la secrète, jamais dans le code source**)
+
+   Ces variables permettent à la fonction `/api/invite-member` de créer
+   des comptes de connexion pour les membres directement depuis la page
+   Membres (sans passer par le tableau de bord Supabase).
+
+4. **Activez la météo réelle** : ajoutez également `OPENWEATHER_API_KEY`
+   avec votre clé [openweathermap.org/api](https://openweathermap.org/api)
+   (offre gratuite), puis redéployez (**Deployments → … → Redeploy**).
+   La clé reste côté serveur, jamais exposée au navigateur.
+5. Votre site est en ligne sur `https://votre-projet.vercel.app`.
    Chaque `git push` sur la branche principale redéploie automatiquement.
-5. Optionnel : ajoutez un nom de domaine du club dans
+6. Optionnel : ajoutez un nom de domaine du club dans
    **Settings → Domains**.
 
 ## 5. Paiement des baptêmes (HelloAsso)
