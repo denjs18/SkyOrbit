@@ -3,279 +3,536 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkyOrbit - La plateforme des aéro-clubs ULM</title>
+    <title>SkyOrbit — La plateforme des aéro-clubs ULM</title>
     <meta name="description" content="SkyOrbit : réservations, membres, machines, baptêmes de l'air et météo — la plateforme de gestion pour les aéro-clubs ULM.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/theme.css">
     <style>
-        :root {
-            --primary-color: #0ea5e9;
-            --secondary-color: #64748b;
-        }
+        /* ============================================================
+           LANDING SkyOrbit — habillage spécifique vitrine publique.
+           Réutilise les variables --sko-* du système de design.
+           ADN : altitude utile, calme, documentaire.
+           ============================================================ */
+        html { scroll-behavior: smooth; }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: var(--sko-sans);
+            background-color: var(--sko-ivory);
+            color: var(--sko-ink);
         }
 
-        html {
-            scroll-behavior: smooth;
+        /* --- Trame de navigation très atténuée (fines lignes type carte) --- */
+        .map-grid {
+            background-image:
+                linear-gradient(to right, rgba(255,255,255,0.045) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.045) 1px, transparent 1px);
+            background-size: 56px 56px;
+        }
+        .paper-grain {
+            /* grain très léger sur fonds clairs */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
         }
 
-        .navbar-landing {
-            background-color: #0f172a;
+        /* ============================================================
+           NAVIGATION — sobre, fond craie, fine bordure basse
+           ============================================================ */
+        .sko-nav {
+            background-color: var(--sko-chalk);
+            border-bottom: 1px solid var(--sko-line);
+        }
+        .sko-nav .navbar-brand {
+            font-family: var(--sko-display);
+            font-weight: 600;
+            font-size: 1.18rem;
+            color: var(--sko-hangar);
+            letter-spacing: -0.01em;
+        }
+        .sko-nav .navbar-brand i { color: var(--sko-horizon); margin-right: .45rem; font-size: 1rem; }
+        .sko-nav .nav-link {
+            color: var(--sko-control);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        .sko-nav .nav-link:hover { color: var(--sko-hangar); }
+
+        /* ============================================================
+           HERO — aligné à gauche, fond bleu hangar, trame nav
+           ============================================================ */
+        .hero {
+            position: relative;
+            background-color: var(--sko-hangar);
+            color: #eef3fb;
+            overflow: hidden;
+        }
+        .hero::after {
+            /* repère d'horizon discret en bas du hero */
+            content: "";
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(79,169,217,0.5), transparent);
+        }
+        .hero .eyebrow {
+            font-family: var(--sko-mono);
+            font-size: 0.74rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--sko-horizon);
+            margin-bottom: 1.1rem;
+        }
+        .hero h1 {
+            font-family: var(--sko-display);
+            font-weight: 600;
+            color: #ffffff;
+            font-size: clamp(2.1rem, 4.4vw, 3.3rem);
+            line-height: 1.06;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.25rem;
+            max-width: 16ch;
+        }
+        .hero .lead {
+            color: rgba(238, 243, 251, 0.82);
+            font-size: 1.12rem;
+            line-height: 1.6;
+            max-width: 48ch;
+            margin-bottom: 1rem;
+        }
+        .hero .promise {
+            font-family: var(--sko-mono);
+            font-size: 0.84rem;
+            color: var(--sko-brass);
+            letter-spacing: 0.02em;
+            margin-bottom: 2rem;
+        }
+        .hero .btn-primary {
+            background-color: var(--sko-horizon);
+            border-color: var(--sko-horizon);
+            color: #06223f;
+            font-weight: 600;
+        }
+        .hero .btn-primary:hover { background-color: #6bbbe3; border-color: #6bbbe3; color: #06223f; }
+        .hero .btn-ghost {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.28);
+            color: #eef3fb;
+        }
+        .hero .btn-ghost:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.55); color: #fff; }
+
+        /* Cartouche technique « plaque d'aérodrome » */
+        .hero-plate {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: var(--sko-radius);
+            padding: 1.35rem 1.4rem;
+        }
+        .hero-plate .plate-title {
+            font-family: var(--sko-mono);
+            font-size: 0.7rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: rgba(238,243,251,0.55);
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+            padding-bottom: .6rem;
+            margin-bottom: .85rem;
+        }
+        .hero-plate dl { margin: 0; }
+        .hero-plate .row-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 1rem;
+            padding: .38rem 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.09);
+        }
+        .hero-plate .row-line:last-child { border-bottom: 0; }
+        .hero-plate dt { color: rgba(238,243,251,0.6); font-size: 0.82rem; font-weight: 400; }
+        .hero-plate dd {
+            margin: 0;
+            font-family: var(--sko-mono);
+            font-size: 0.86rem;
+            color: #fff;
         }
 
-        .navbar-landing .navbar-brand {
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
+        /* ============================================================
+           SECTIONS — respiration éditoriale
+           ============================================================ */
+        .section { padding: 5.5rem 0; }
+        .section-ivory { background-color: var(--sko-ivory); }
+        .section-chalk { background-color: var(--sko-chalk); border-top: 1px solid var(--sko-line); border-bottom: 1px solid var(--sko-line); }
+        .section-hangar { background-color: var(--sko-hangar); color: #eef3fb; }
 
-        .navbar-landing .navbar-brand i {
-            color: var(--primary-color);
+        .section-kicker {
+            font-family: var(--sko-mono);
+            font-size: 0.74rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--sko-horizon);
+            margin-bottom: .8rem;
         }
+        .section-title {
+            font-family: var(--sko-display);
+            font-weight: 600;
+            color: var(--sko-hangar);
+            font-size: clamp(1.7rem, 3vw, 2.3rem);
+            letter-spacing: -0.015em;
+            margin-bottom: .65rem;
+        }
+        .section-sub { color: var(--sko-control); font-size: 1.05rem; max-width: 60ch; }
 
-        .hero-section {
-            background: linear-gradient(135deg, rgba(14, 165, 233, 0.92), rgba(6, 182, 212, 0.92)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%2306b6d4" width="1200" height="600"/></svg>');
-            background-size: cover;
-            background-position: center;
-            color: white;
-            padding: 100px 0;
+        /* ============================================================
+           CARTES FONCTIONNALITÉS — fines, sans pastille, asymétriques
+           ============================================================ */
+        .feat-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1.25rem;
+        }
+        .feat {
+            background-color: var(--sko-chalk);
+            border: 1px solid var(--sko-line);
+            border-radius: var(--sko-radius);
+            box-shadow: var(--sko-shadow);
+            padding: 1.6rem 1.7rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .feat .feat-head {
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            margin-bottom: .9rem;
+        }
+        .feat .feat-head i {
+            font-size: 1.25rem;
+            color: var(--sko-hangar);
+            width: 1.6rem;
             text-align: center;
         }
+        .feat .feat-tag {
+            font-family: var(--sko-mono);
+            font-size: 0.68rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--sko-control);
+        }
+        .feat h3 {
+            font-family: var(--sko-display);
+            font-weight: 600;
+            font-size: 1.18rem;
+            color: var(--sko-hangar);
+            margin-bottom: .55rem;
+        }
+        .feat p { color: var(--sko-control); margin: 0; line-height: 1.55; }
 
-        .hero-section h1 {
-            font-size: 48px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        /* Carte d'intention principale (large) */
+        .feat-lead { grid-column: span 6; }
+        .feat-lead {
+            background-color: var(--sko-chalk);
+            border-left: 4px solid var(--sko-horizon);
+        }
+        .feat-lead h3 { font-size: 1.5rem; }
+        .feat-lead .feat-head i { font-size: 1.5rem; color: var(--sko-horizon); }
+        .feat-lead p { font-size: 1.05rem; color: var(--sko-ink); max-width: 62ch; }
+
+        .feat-half { grid-column: span 3; }
+        .feat-third { grid-column: span 3; }
+        .feat-ops { border-left: 4px solid var(--sko-runway); }
+        .feat-ops .feat-head i { color: var(--sko-runway); }
+        .feat-trust { border-left: 4px solid var(--sko-brass); }
+        .feat-trust .feat-head i { color: #b1893a; }
+
+        .feat ul.feat-list {
+            list-style: none;
+            padding: 0;
+            margin: .9rem 0 0;
+            font-family: var(--sko-mono);
+            font-size: 0.82rem;
+            color: var(--sko-control);
+        }
+        .feat ul.feat-list li { padding: .18rem 0; }
+        .feat ul.feat-list li::before { content: "· "; color: var(--sko-horizon); }
+
+        @media (max-width: 991px) {
+            .feat-half, .feat-third { grid-column: span 6; }
         }
 
-        .hero-section p {
-            font-size: 22px;
-            margin-bottom: 35px;
-            max-width: 760px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .features-section {
-            padding: 80px 0;
-            background-color: #f8fafc;
-        }
-
-        .clubs-section {
-            padding: 80px 0;
-        }
-
-        .feature-card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        /* ============================================================
+           CARTES CLUB — allure « plaque technique »
+           ============================================================ */
+        .club-plate {
+            background-color: var(--sko-chalk);
+            border: 1px solid var(--sko-line);
+            border-radius: var(--sko-radius);
+            box-shadow: var(--sko-shadow);
             height: 100%;
-            text-align: center;
-            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
+        .club-plate .plate-strip {
+            background-color: rgba(14,34,72,0.04);
+            border-bottom: 1px solid var(--sko-line-2);
+            padding: .55rem 1.2rem;
+            font-family: var(--sko-mono);
+            font-size: 0.8rem;
+            color: var(--sko-hangar);
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+        .club-plate .plate-strip i { color: var(--sko-horizon); }
+        .club-plate .plate-body { padding: 1.25rem 1.2rem 1.1rem; display: flex; flex-direction: column; flex: 1; }
+        .club-plate h3 {
+            font-family: var(--sko-display);
+            font-weight: 600;
+            font-size: 1.22rem;
+            color: var(--sko-hangar);
+            margin-bottom: .5rem;
+        }
+        .club-plate .club-city {
+            font-size: 0.9rem;
+            color: var(--sko-control);
+            margin-bottom: .75rem;
+        }
+        .club-plate .club-city i { color: var(--sko-control); margin-right: .35rem; }
+        .club-plate .club-desc { color: var(--sko-ink); font-size: 0.95rem; line-height: 1.55; margin-bottom: 1rem; }
+        .club-plate .plate-foot {
+            margin-top: auto;
+            padding-top: .9rem;
+            border-top: 1px solid var(--sko-line-2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .6rem;
+        }
+        .club-plate .club-contact { font-size: 0.85rem; }
+        .club-plate .club-contact i { color: var(--sko-control); margin-right: .3rem; }
 
-        .feature-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        /* ============================================================
+           CTA FINAL — fond hangar
+           ============================================================ */
+        .section-hangar .section-title { color: #fff; }
+        .section-hangar .section-sub { color: rgba(238,243,251,0.78); }
+        .section-hangar .btn-primary {
+            background-color: var(--sko-horizon);
+            border-color: var(--sko-horizon);
+            color: #06223f;
+            font-weight: 600;
         }
+        .section-hangar .btn-primary:hover { background-color: #6bbbe3; border-color: #6bbbe3; color: #06223f; }
 
-        .feature-card i {
-            font-size: 42px;
-            color: var(--primary-color);
-            margin-bottom: 18px;
+        /* ============================================================
+           FOOTER — sobre
+           ============================================================ */
+        .sko-footer {
+            background-color: var(--sko-hangar);
+            color: rgba(238,243,251,0.7);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            padding: 2.2rem 0;
         }
+        .sko-footer .brand {
+            font-family: var(--sko-display);
+            color: #fff;
+            font-weight: 600;
+        }
+        .sko-footer .brand i { color: var(--sko-horizon); margin-right: .4rem; }
+        .sko-footer a { color: rgba(238,243,251,0.7); }
+        .sko-footer a:hover { color: #fff; }
 
-        .feature-card h3 {
-            font-size: 20px;
-            margin-bottom: 12px;
-            color: #1e293b;
-        }
-
-        .feature-card p {
-            color: var(--secondary-color);
-            margin-bottom: 0;
-        }
-
-        .club-card {
-            border: 2px solid #e2e8f0;
-            border-radius: 15px;
-            transition: all 0.3s ease;
-            height: 100%;
-            background: white;
-        }
-
-        .club-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-            border-color: var(--primary-color);
-        }
-
-        .club-card .card-body i {
-            color: var(--primary-color);
-        }
-
-        .cta-section {
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            color: white;
-            padding: 70px 0;
-            text-align: center;
-        }
-
-        .cta-section h2 {
-            font-weight: 700;
-            margin-bottom: 15px;
-        }
-
-        footer {
-            background-color: #0f172a;
-            color: white;
-            padding: 30px 0;
-            text-align: center;
-        }
+        /* État de chargement / message liste */
+        .clubs-note { color: var(--sko-control); }
+        .clubs-note i { color: var(--sko-control); }
     </style>
 </head>
 <body>
-    <!-- Barre de navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-landing sticky-top">
+
+    <!-- ============ NAVIGATION ============ -->
+    <nav class="navbar navbar-expand-lg sko-nav sticky-top">
         <div class="container">
             <a class="navbar-brand" href="index.html">
-                <i class="fas fa-plane-departure"></i> SkyOrbit
+                <i class="fas fa-plane-departure"></i>SkyOrbit
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarLanding"
-                    aria-controls="navbarLanding" aria-expanded="false" aria-label="Afficher la navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain"
+                    aria-controls="navMain" aria-expanded="false" aria-label="Afficher la navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarLanding">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 me-lg-3">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#fonctionnalites">Fonctionnalités</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#clubs">Clubs</a>
-                    </li>
+            <div class="collapse navbar-collapse" id="navMain">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 me-lg-4">
+                    <li class="nav-item"><a class="nav-link" href="#fonctionnalites">Fonctionnalités</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#clubs">Clubs</a></li>
                 </ul>
                 <div class="d-flex flex-column flex-lg-row gap-2">
-                    <a href="login.html" class="btn btn-outline-light">
-                        <i class="fas fa-right-to-bracket"></i> Se connecter
+                    <a href="login.html" class="btn btn-secondary">
+                        <i class="fas fa-right-to-bracket me-1"></i> Se connecter
                     </a>
                     <a href="register-club.html" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Créer mon club
+                        <i class="fas fa-plus me-1"></i> Créer mon club
                     </a>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Hero -->
-    <section class="hero-section">
-        <div class="container">
-            <h1>Gérez votre aéro-club ULM, simplement</h1>
-            <p>
-                SkyOrbit réunit tout ce dont votre club a besoin : réservations de machines,
-                suivi des membres et des cotisations, maintenance, baptêmes de l'air et météo
-                du terrain — dans une seule plateforme, pensée pour les bénévoles.
-            </p>
-            <div class="d-flex justify-content-center gap-3 flex-wrap">
-                <a href="register-club.html" class="btn btn-light btn-lg">
-                    <i class="fas fa-plus"></i> Créer mon club
-                </a>
-                <a href="login.html" class="btn btn-outline-light btn-lg">
-                    <i class="fas fa-right-to-bracket"></i> Se connecter
-                </a>
+    <!-- ============ HERO (aligné à gauche) ============ -->
+    <header class="hero map-grid">
+        <div class="container" style="padding-top: 5.5rem; padding-bottom: 5.5rem;">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-7">
+                    <p class="eyebrow">Plateforme de gestion · aéro-clubs ULM</p>
+                    <h1>Gérez votre aérodrome, gardez l'altitude.</h1>
+                    <p class="lead">
+                        SkyOrbit réunit la vie de votre club au même endroit : réservations
+                        de machines, suivi des membres et des cotisations, maintenance et
+                        météo du terrain. Pensé pour les bénévoles et les responsables terrain.
+                    </p>
+                    <p class="promise">Réservations · Membres · Météo · Maintenance.</p>
+                    <div class="d-flex flex-column flex-sm-row gap-3">
+                        <a href="register-club.html" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus me-1"></i> Créer mon club
+                        </a>
+                        <a href="login.html" class="btn btn-ghost btn-lg">
+                            <i class="fas fa-right-to-bracket me-1"></i> Se connecter
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="hero-plate">
+                        <div class="plate-title">Plaque technique · SkyOrbit</div>
+                        <dl>
+                            <div class="row-line"><dt>Vocation</dt><dd>Multi-clubs ULM</dd></div>
+                            <div class="row-line"><dt>Modules</dt><dd>RSV / MBR / MNT</dd></div>
+                            <div class="row-line"><dt>Météo</dt><dd>Position exacte</dd></div>
+                            <div class="row-line"><dt>Données</dt><dd>Privées / club</dd></div>
+                            <div class="row-line"><dt>Accès</dt><dd>Bureau · Inst · Pil</dd></div>
+                        </dl>
+                    </div>
+                </div>
             </div>
         </div>
-    </section>
+    </header>
 
-    <!-- Fonctionnalités -->
-    <section id="fonctionnalites" class="features-section">
+    <!-- ============ FONCTIONNALITÉS ============ -->
+    <section id="fonctionnalites" class="section section-ivory paper-grain">
         <div class="container">
-            <div class="text-center mb-5">
-                <h2 class="display-5 mb-3">Fonctionnalités</h2>
-                <p class="lead text-muted">Tout pour faire vivre votre club, du hangar au ciel</p>
+            <div class="mb-5">
+                <p class="section-kicker">Ce que fait SkyOrbit</p>
+                <h2 class="section-title">Les informations essentielles, au bon endroit.</h2>
+                <p class="section-sub">
+                    Une progression simple, du calendrier partagé jusqu'à la confidentialité des
+                    données. Rien de superflu — l'outil suit le rythme du terrain.
+                </p>
             </div>
-            <div class="row g-4">
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
+
+            <div class="feat-grid">
+                <!-- Carte d'intention principale -->
+                <article class="feat feat-lead">
+                    <div class="feat-head">
                         <i class="fas fa-calendar-check"></i>
-                        <h3>Réservations de machines</h3>
-                        <p>Calendrier partagé entre les membres, demandes de créneaux et validation par le bureau.</p>
+                        <span class="feat-tag">Réservations · Calendrier partagé</span>
                     </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
+                    <h3>Le planning du club, partagé et tenu à jour</h3>
+                    <p>
+                        Chaque membre voit les créneaux disponibles, demande une machine, et le
+                        bureau valide. Plus de double réservation, plus de feuille papier au hangar :
+                        le calendrier est la source unique de vérité.
+                    </p>
+                </article>
+
+                <!-- 2 cartes de fonctions -->
+                <article class="feat feat-half">
+                    <div class="feat-head">
                         <i class="fas fa-users"></i>
-                        <h3>Membres &amp; cotisations</h3>
-                        <p>Suivi des licences, des visites médicales et des cotisations, avec alertes avant échéance.</p>
+                        <span class="feat-tag">Membres</span>
                     </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
+                    <h3>Membres &amp; cotisations</h3>
+                    <p>Licences, visites médicales et cotisations suivies au même endroit, avec alertes avant échéance.</p>
+                    <ul class="feat-list">
+                        <li>Rôles : bureau, instructeur, pilote, membre</li>
+                        <li>Échéances licence et médical</li>
+                    </ul>
+                </article>
+
+                <article class="feat feat-half">
+                    <div class="feat-head">
                         <i class="fas fa-screwdriver-wrench"></i>
-                        <h3>Machines &amp; maintenance</h3>
-                        <p>Compteur d'heures mis à jour à chaque vol et historique des visites d'entretien.</p>
+                        <span class="feat-tag">Flotte</span>
                     </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <i class="fas fa-gift"></i>
-                        <h3>Baptêmes de l'air</h3>
-                        <p>Page de réservation publique pour vos passagers et paiement en ligne via HelloAsso.</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
+                    <h3>Machines &amp; maintenance</h3>
+                    <p>Compteur d'heures mis à jour à chaque vol et historique des visites d'entretien, machine par machine.</p>
+                    <ul class="feat-list">
+                        <li>Intervalle d'entretien suivi</li>
+                        <li>Journal de maintenance daté</li>
+                    </ul>
+                </article>
+
+                <!-- Carte info opérationnelle -->
+                <article class="feat feat-third feat-ops">
+                    <div class="feat-head">
                         <i class="fas fa-cloud-sun"></i>
-                        <h3>Météo du terrain</h3>
-                        <p>Conditions de vol calculées à la localisation exacte de votre plateforme.</p>
+                        <span class="feat-tag">Opérationnel</span>
                     </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
+                    <h3>Météo du terrain</h3>
+                    <p>Conditions de vol calculées à la localisation exacte de votre plateforme, pas à la grande ville voisine.</p>
+                </article>
+
+                <!-- Carte confiance / sécurité -->
+                <article class="feat feat-third feat-trust">
+                    <div class="feat-head">
                         <i class="fas fa-shield-halved"></i>
-                        <h3>Sécurité</h3>
-                        <p>Données strictement privées par club et rôles adaptés : bureau, instructeurs, pilotes, membres.</p>
+                        <span class="feat-tag">Confiance</span>
                     </div>
-                </div>
+                    <h3>Données privées par club</h3>
+                    <p>La vie de chaque club reste cloisonnée. Les accès suivent les rôles : on ne voit que ce qui nous concerne.</p>
+                </article>
             </div>
         </div>
     </section>
 
-    <!-- Clubs -->
-    <section id="clubs" class="clubs-section">
+    <!-- ============ CLUBS ============ -->
+    <section id="clubs" class="section section-chalk">
         <div class="container">
-            <div class="text-center mb-5">
-                <h2 class="display-5 mb-3">Les clubs sur SkyOrbit</h2>
-                <p class="lead text-muted">
-                    Les informations de base des clubs sont publiques ;
-                    la vie du club (réservations, membres, machines…) est réservée à ses membres.
+            <div class="mb-5">
+                <p class="section-kicker">Annuaire public</p>
+                <h2 class="section-title">Les clubs sur SkyOrbit</h2>
+                <p class="section-sub">
+                    Les informations de base d'un club sont publiques : terrain, ville, contact.
+                    La vie du club — réservations, membres, machines — reste réservée à ses membres.
                 </p>
             </div>
             <div id="clubsList" class="row g-4">
-                <div class="col-12 text-center text-muted">
+                <div class="col-12 clubs-note">
                     <span class="spinner-border spinner-border-sm"></span> Chargement des clubs…
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Appel à l'action -->
-    <section class="cta-section">
+    <!-- ============ CTA FINAL ============ -->
+    <section class="section section-hangar map-grid">
         <div class="container">
-            <h2>Votre club n'est pas encore sur SkyOrbit ?</h2>
-            <p class="lead mb-4">Créez-le en quelques minutes et invitez vos membres.</p>
-            <a href="register-club.html" class="btn btn-primary btn-lg">
-                <i class="fas fa-plus"></i> Créer mon club
-            </a>
+            <div class="row align-items-center g-4">
+                <div class="col-lg-8">
+                    <p class="section-kicker">Rejoindre la plateforme</p>
+                    <h2 class="section-title">Votre club n'est pas encore sur SkyOrbit ?</h2>
+                    <p class="section-sub mb-0">Créez-le en quelques minutes et invitez vos membres. C'est gratuit pour démarrer.</p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <a href="register-club.html" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus me-1"></i> Créer mon club
+                    </a>
+                </div>
+            </div>
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <p class="mb-0">&copy; 2026 SkyOrbit</p>
+    <!-- ============ FOOTER ============ -->
+    <footer class="sko-footer">
+        <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+            <span class="brand"><i class="fas fa-plane-departure"></i>SkyOrbit</span>
+            <span>&copy; 2026 SkyOrbit</span>
         </div>
     </footer>
 

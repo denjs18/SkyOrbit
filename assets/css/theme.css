@@ -1,0 +1,416 @@
+/* ============================================================
+   SkyOrbit — SYSTÈME DE DESIGN « Aéro-club contemporain »
+   ============================================================
+   Couche d'identité chargée APRÈS Bootstrap, style.css et
+   dashboard.css : elle redéfinit la palette, la typographie et
+   l'allure des composants. Le balisage et les hooks JS existants
+   sont conservés ; seul l'habillage change.
+
+   ADN : altitude utile, calme, documentaire. Cartes aériennes,
+   plaques techniques d'aérodrome, signalétique claire.
+   Règle de couleur : 70 % neutres / 20 % bleus / 10 % accents.
+   ============================================================ */
+
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=general-sans@500,600,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+    /* Palette de marque */
+    --sko-ivory:   #F4F1EA;  /* ivoire brume — fond principal */
+    --sko-chalk:   #FBFAF7;  /* craie froide — surfaces */
+    --sko-ink:     #172033;  /* encre nuit — texte principal */
+    --sko-control: #677489;  /* gris tour de contrôle — texte secondaire */
+    --sko-hangar:  #0E2248;  /* bleu hangar — identité */
+    --sko-horizon: #4FA9D9;  /* bleu horizon — interactions */
+    --sko-runway:  #5E7F51;  /* vert piste — disponibilité, favorable */
+    --sko-beacon:  #C96A2B;  /* orange balise — alertes, échéances */
+    --sko-brass:   #D7B25C;  /* laiton solaire — détail premium */
+
+    --sko-line:    rgba(23, 32, 51, 0.10);  /* bordures fines */
+    --sko-line-2:  rgba(23, 32, 51, 0.06);
+    --sko-shadow:  0 1px 2px rgba(23, 32, 51, 0.04), 0 6px 16px rgba(23, 32, 51, 0.06);
+    --sko-radius:  10px;
+    --sko-radius-sm: 6px;
+
+    --sko-sans: 'Satoshi', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --sko-display: 'General Sans', 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+    --sko-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+    /* Remap des variables historiques de l'app */
+    --primary-color: var(--sko-hangar);
+    --secondary-color: var(--sko-control);
+    --success-color: var(--sko-runway);
+    --warning-color: var(--sko-beacon);
+    --danger-color: #B23A2B;
+    --info-color: var(--sko-horizon);
+    --dark-color: var(--sko-hangar);
+    --light-color: var(--sko-ivory);
+
+    /* Variables Bootstrap */
+    --bs-primary: #0E2248;
+    --bs-primary-rgb: 14, 34, 72;
+    --bs-body-bg: #F4F1EA;
+    --bs-body-color: #172033;
+    --bs-body-font-family: var(--sko-sans);
+    --bs-border-color: rgba(23, 32, 51, 0.10);
+    --bs-link-color: #2C6E97;
+    --bs-link-hover-color: #0E2248;
+}
+
+/* ---------- Trame de navigation très atténuée (texture) ---------- */
+/* Fines lignes inspirées des cartes aéro, posées sur le fond global. */
+body {
+    font-family: var(--sko-sans);
+    background-color: var(--sko-ivory);
+    color: var(--sko-ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    font-family: var(--sko-display);
+    font-weight: 600;
+    color: var(--sko-hangar);
+    letter-spacing: -0.01em;
+}
+
+.text-muted { color: var(--sko-control) !important; }
+
+/* Éléments techniques : immatriculations, codes, coordonnées, météo */
+.mono, .tech, code, .badge, .stat-content h3,
+.weather-temp-large h1, .price, .forecast-day .temps {
+    font-family: var(--sko-mono);
+    font-feature-settings: 'tnum' 1;
+}
+
+/* ============================================================
+   BOUTONS — plats, jamais de dégradé
+   ============================================================ */
+.btn {
+    border-radius: var(--sko-radius-sm);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    padding: 0.55rem 1.1rem;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+    box-shadow: none !important;
+}
+.btn-lg { padding: 0.7rem 1.4rem; }
+.btn-sm { padding: 0.3rem 0.6rem; }
+
+.btn-primary {
+    background-color: var(--sko-hangar);
+    border-color: var(--sko-hangar);
+    color: #fff;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+    background-color: #16315f;
+    border-color: #16315f;
+    color: #fff;
+}
+
+.btn-outline-primary {
+    border: 1px solid var(--sko-hangar);
+    color: var(--sko-hangar);
+    background: transparent;
+}
+.btn-outline-primary:hover, .btn-outline-primary:active {
+    background-color: var(--sko-hangar);
+    color: #fff;
+}
+
+.btn-secondary {
+    background-color: #fff;
+    border: 1px solid var(--sko-line);
+    color: var(--sko-hangar);
+}
+.btn-secondary:hover {
+    background-color: var(--sko-ivory);
+    border-color: var(--sko-control);
+    color: var(--sko-hangar);
+}
+
+.btn-success { background-color: var(--sko-runway); border-color: var(--sko-runway); }
+.btn-success:hover { background-color: #4e6b43; border-color: #4e6b43; }
+.btn-warning { background-color: var(--sko-beacon); border-color: var(--sko-beacon); color: #fff; }
+.btn-warning:hover { background-color: #b15c24; border-color: #b15c24; color: #fff; }
+.btn-danger { background-color: var(--danger-color); border-color: var(--danger-color); }
+.btn-info { background-color: var(--sko-horizon); border-color: var(--sko-horizon); color: #fff; }
+.btn-light { background-color: #fff; border-color: var(--sko-line); color: var(--sko-hangar); }
+.btn-outline-secondary {
+    border: 1px solid var(--sko-line);
+    color: var(--sko-control);
+}
+.btn-outline-secondary:hover {
+    background-color: var(--sko-ivory);
+    color: var(--sko-hangar);
+    border-color: var(--sko-control);
+}
+
+/* ============================================================
+   CARTES — surface claire cassée, bord fin, ombre courte
+   ============================================================ */
+.card {
+    background-color: var(--sko-chalk);
+    border: 1px solid var(--sko-line);
+    border-radius: var(--sko-radius);
+    box-shadow: var(--sko-shadow);
+}
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--sko-line-2);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+.card-header h5, .card-header h6 { margin: 0; font-size: 1rem; }
+.card-header h5 i, .card-header h6 i { color: var(--sko-horizon); margin-right: .4rem; }
+
+/* ============================================================
+   BADGES — petits, techniques, contrôlés
+   ============================================================ */
+.badge {
+    font-weight: 500;
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 0.32em 0.6em;
+    border-radius: 4px;
+    border: 1px solid transparent;
+}
+.badge.bg-success { background-color: rgba(94, 127, 81, 0.12) !important; color: #43603a !important; border-color: rgba(94, 127, 81, 0.30); }
+.badge.bg-warning { background-color: rgba(201, 106, 43, 0.12) !important; color: #a4541f !important; border-color: rgba(201, 106, 43, 0.30); }
+.badge.bg-danger  { background-color: rgba(178, 58, 43, 0.12)  !important; color: #8f2d22 !important; border-color: rgba(178, 58, 43, 0.30); }
+.badge.bg-info    { background-color: rgba(79, 169, 217, 0.14) !important; color: #2c6e97 !important; border-color: rgba(79, 169, 217, 0.32); }
+.badge.bg-primary { background-color: rgba(14, 34, 72, 0.10)   !important; color: var(--sko-hangar) !important; border-color: rgba(14, 34, 72, 0.22); }
+.badge.bg-secondary { background-color: rgba(103, 116, 137, 0.14) !important; color: #4d5870 !important; border-color: rgba(103, 116, 137, 0.30); }
+
+/* ============================================================
+   FORMULAIRES
+   ============================================================ */
+.form-control, .form-select {
+    border: 1px solid var(--sko-line);
+    border-radius: var(--sko-radius-sm);
+    color: var(--sko-ink);
+    background-color: #fff;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--sko-horizon);
+    box-shadow: 0 0 0 3px rgba(79, 169, 217, 0.18);
+}
+.form-label { font-weight: 500; color: var(--sko-ink); font-size: 0.9rem; }
+
+/* ============================================================
+   TABLEAUX
+   ============================================================ */
+.table { color: var(--sko-ink); }
+.table > thead th {
+    font-family: var(--sko-sans);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sko-control);
+    font-weight: 600;
+    border-bottom: 1px solid var(--sko-line);
+}
+.table > tbody > tr > td { border-color: var(--sko-line-2); vertical-align: middle; }
+.table-hover > tbody > tr:hover > * { background-color: rgba(79, 169, 217, 0.05); }
+
+/* ============================================================
+   BARRE LATÉRALE — bleu hangar plein, accent horizon
+   ============================================================ */
+.sidebar {
+    background: var(--sko-hangar);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: none;
+}
+.sidebar-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.sidebar-header i { color: var(--sko-horizon); }
+.sidebar-header h3 {
+    font-family: var(--sko-display);
+    color: #fff;
+    letter-spacing: 0.04em;
+}
+.sidebar-header h3 small { color: rgba(255,255,255,0.7); letter-spacing: 0; }
+.nav-item { color: rgba(255, 255, 255, 0.66); border-left: 3px solid transparent; }
+.nav-item:hover { background-color: rgba(255, 255, 255, 0.05); color: #fff; border-left-color: var(--sko-horizon); }
+.nav-item.active { background-color: rgba(79, 169, 217, 0.16); color: #fff; border-left-color: var(--sko-horizon); }
+.sidebar-footer { border-top: 1px solid rgba(255, 255, 255, 0.08); }
+
+/* ============================================================
+   ZONE PRINCIPALE & EN-TÊTE
+   ============================================================ */
+.main-content { background-color: var(--sko-ivory); }
+.top-header {
+    background: var(--sko-chalk);
+    border-bottom: 1px solid var(--sko-line);
+    box-shadow: none;
+}
+.weather-widget-mini { background-color: var(--sko-ivory); border: 1px solid var(--sko-line-2); }
+.weather-widget-mini i { color: var(--sko-horizon); }
+.weather-widget-mini .direction { color: var(--sko-hangar); }
+.btn-notification .badge { background-color: var(--sko-beacon); border: none; color: #fff; text-transform: none; }
+.user-avatar { border: 2px solid var(--sko-line); }
+.user-name { color: var(--sko-ink); }
+
+.page-header h1 {
+    font-family: var(--sko-display);
+    font-size: 1.7rem;
+}
+.page-header h1 i { color: var(--sko-horizon); }
+
+/* ============================================================
+   CARTES STATISTIQUES — fond clair, filet de couleur à gauche
+   (on abandonne les aplats vifs .bg-* pour une lecture sobre)
+   ============================================================ */
+.stat-card {
+    background-color: var(--sko-chalk) !important;
+    color: var(--sko-ink) !important;
+    border: 1px solid var(--sko-line);
+    border-left: 4px solid var(--sko-hangar);
+    border-radius: var(--sko-radius);
+    box-shadow: var(--sko-shadow);
+    padding: 1.25rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.stat-card .stat-icon {
+    width: 46px; height: 46px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+    font-size: 1.25rem;
+    background-color: rgba(14, 34, 72, 0.07);
+    color: var(--sko-hangar);
+}
+.stat-card .stat-content h3 {
+    font-size: 1.6rem;
+    margin: 0;
+    color: var(--sko-ink);
+}
+.stat-card .stat-content p { margin: 0; color: var(--sko-control); font-size: 0.85rem; }
+
+.stat-card.bg-primary { border-left-color: var(--sko-hangar); }
+.stat-card.bg-primary .stat-icon { background-color: rgba(14,34,72,0.08); color: var(--sko-hangar); }
+.stat-card.bg-success { border-left-color: var(--sko-runway); }
+.stat-card.bg-success .stat-icon { background-color: rgba(94,127,81,0.12); color: var(--sko-runway); }
+.stat-card.bg-info { border-left-color: var(--sko-horizon); }
+.stat-card.bg-info .stat-icon { background-color: rgba(79,169,217,0.14); color: #2c6e97; }
+.stat-card.bg-warning { border-left-color: var(--sko-beacon); }
+.stat-card.bg-warning .stat-icon { background-color: rgba(201,106,43,0.12); color: var(--sko-beacon); }
+
+/* ============================================================
+   ALERTES
+   ============================================================ */
+.alert { border-radius: var(--sko-radius-sm); border: 1px solid transparent; }
+.alert-success { background-color: rgba(94,127,81,0.10); color: #3d562f; border-color: rgba(94,127,81,0.25); }
+.alert-warning { background-color: rgba(201,106,43,0.10); color: #8f4a1c; border-color: rgba(201,106,43,0.25); }
+.alert-danger  { background-color: rgba(178,58,43,0.10);  color: #8f2d22; border-color: rgba(178,58,43,0.25); }
+.alert-info    { background-color: rgba(79,169,217,0.10); color: #265a7c; border-color: rgba(79,169,217,0.25); }
+
+/* ============================================================
+   ÉLÉMENTS MÉTÉO / PLANNING / FORMULES
+   ============================================================ */
+.flight-status.excellent { color: var(--sko-runway); }
+.flight-status i { font-size: 2.2rem; }
+.weather-icon-large i, .weather-icon-detail { color: var(--sko-horizon); }
+.weather-temp-large h1 { color: var(--sko-hangar); }
+.forecast-day {
+    border: 1px solid var(--sko-line);
+    border-radius: var(--sko-radius-sm);
+    background: var(--sko-chalk);
+    text-align: center;
+    padding: .75rem .5rem;
+}
+.forecast-icon { color: var(--sko-horizon); font-size: 1.5rem; margin: .4rem 0; }
+.forecast-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: .6rem; }
+
+.price-card {
+    border: 1px solid var(--sko-line);
+    border-radius: var(--sko-radius);
+    background: var(--sko-chalk);
+    box-shadow: var(--sko-shadow);
+}
+.price-card.popular { border-color: var(--sko-brass); background: linear-gradient(180deg, #fffdf6, #fbf6e8); }
+.popular-badge { background: var(--sko-brass); color: #3d2f10; }
+.price { color: var(--sko-hangar); }
+.features i { color: var(--sko-runway); }
+
+.reservation-item, .news-item { border-bottom: 1px solid var(--sko-line-2); }
+.action-btn {
+    border: 1px solid var(--sko-line);
+    border-radius: var(--sko-radius-sm);
+    background: var(--sko-chalk);
+    color: var(--sko-hangar);
+}
+.action-btn:hover { background: var(--sko-ivory); border-color: var(--sko-horizon); color: var(--sko-hangar); }
+.action-btn i { color: var(--sko-horizon); }
+
+.code-block {
+    background: var(--sko-hangar);
+    color: #e7eefc;
+    border-radius: var(--sko-radius-sm);
+    font-family: var(--sko-mono);
+}
+
+/* Liens */
+a { color: #2C6E97; }
+a:hover { color: var(--sko-hangar); }
+
+/* Toasts conservent leurs couleurs Bootstrap mais en version sobre */
+.toast.bg-success { background-color: var(--sko-runway) !important; }
+.toast.bg-danger  { background-color: var(--danger-color) !important; }
+.toast.bg-info    { background-color: var(--sko-horizon) !important; }
+
+/* ============================================================
+   PAGES « CARTE CENTRÉE » : connexion, création de club
+   ============================================================ */
+.login-page {
+    background: var(--sko-hangar);
+    position: relative;
+}
+/* Trame de fines lignes de navigation, très atténuée */
+.login-page::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 64px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 64px);
+    opacity: 1;
+}
+.login-card {
+    background: var(--sko-chalk);
+    border: 1px solid var(--sko-line);
+    border-radius: var(--sko-radius);
+    box-shadow: 0 20px 50px rgba(14, 34, 72, 0.35);
+}
+.login-card:hover { transform: none; box-shadow: 0 22px 55px rgba(14, 34, 72, 0.4); }
+.login-header h1 {
+    font-family: var(--sko-display);
+    color: var(--sko-hangar);
+    letter-spacing: 0.04em;
+}
+.login-header .logo-container,
+.login-header .logo-container i { color: var(--sko-horizon); }
+.subtitle { color: var(--sko-control); }
+.login-footer { color: rgba(255, 255, 255, 0.75); }
+.login-footer a { color: #fff; }
+.demo-access {
+    border-top: 1px solid var(--sko-line-2);
+    padding-top: 1rem;
+    text-align: center;
+}
+
+/* Cartouche « plaque technique » réutilisable (annuaire, hero) */
+.tech-plate {
+    font-family: var(--sko-mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    color: var(--sko-control);
+}
+.tech-plate strong { color: var(--sko-hangar); }
