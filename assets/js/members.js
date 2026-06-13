@@ -13,7 +13,7 @@
     const EXPIRY_WARNING_DAYS = 60;
 
     const ROLE_BADGES = {
-        admin: { label: 'Bureau', className: 'bg-danger' },
+        admin: { label: 'Bureau (admin)', className: 'bg-danger' },
         instructor: { label: 'Instructeur', className: 'bg-info' },
         pilot: { label: 'Pilote', className: 'bg-primary' },
         member: { label: 'Membre', className: 'bg-secondary' }
