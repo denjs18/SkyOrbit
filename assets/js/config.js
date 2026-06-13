@@ -1,17 +1,16 @@
 // ============================================
-// CONFIGURATION DE L'APPLICATION - Horizon Libre
+// CONFIGURATION DE LA PLATEFORME - SkyOrbit
 // ============================================
 // Renseignez les valeurs ci-dessous après avoir créé votre projet
-// Supabase (https://supabase.com — gratuit pour une association).
-// Tant que les valeurs SUPABASE_* sont vides, l'application fonctionne
-// en MODE DÉMONSTRATION : les données restent dans le navigateur.
+// Supabase (https://supabase.com — gratuit). Tant que les valeurs
+// SUPABASE_* sont vides, l'application fonctionne en MODE DÉMONSTRATION :
+// les données restent dans le navigateur.
 //
-// La clé "anon" Supabase est publique par conception : elle peut être
-// committée, la sécurité repose sur les règles RLS (voir supabase/schema.sql).
+// La clé "anon" Supabase et la clé OpenWeatherMap sont publiques par
+// conception : elles peuvent être committées. La sécurité des données
+// repose sur les règles RLS (voir supabase/schema.sql).
 
 window.APP_CONFIG = {
-    CLUB_NAME: 'Horizon Libre',
-
     // Projet Supabase : Settings > API
     SUPABASE_URL: 'https://qjreqqhcjwpwjsxqaaeo.supabase.co',
     SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqcmVxcWhjandwd2pzeHFhYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNjM2NTMsImV4cCI6MjA5NjczOTY1M30.ZAc_oQtfrlJ97hbUdOc6GVKsI7j3tYjhscuxiaLSDJA',
@@ -20,12 +19,15 @@ window.APP_CONFIG = {
     // ex: https://www.helloasso.com/associations/horizon-libre/evenements/bapteme-ulm
     HELLOASSO_CAMPAIGN_URL: '',
 
-    // Clé OpenWeatherMap pour la page météo (https://openweathermap.org/api)
+    // Clé OpenWeatherMap pour la page météo (https://openweathermap.org/api).
+    // Laissée vide ici : la météo affiche des données d'exemple tant
+    // qu'aucune clé n'est fournie. Voir INSTALLATION.md pour l'activer.
     OPENWEATHER_API_KEY: '',
 
-    // Coordonnées du terrain (pour la météo)
-    LATITUDE: 47.0,
-    LONGITUDE: 2.0,
+    // Coordonnées de repli si le club du membre n'a pas de coordonnées.
+    // Normalement, la météo utilise la latitude/longitude du terrain du club.
+    LATITUDE: 43.8678,
+    LONGITUDE: 1.4167,
 
     // Formules de baptême (tarifs provisoires, à ajuster par le bureau)
     FORMULES: {
