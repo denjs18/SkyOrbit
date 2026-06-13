@@ -19,10 +19,9 @@ window.APP_CONFIG = {
     // ex: https://www.helloasso.com/associations/horizon-libre/evenements/bapteme-ulm
     HELLOASSO_CAMPAIGN_URL: '',
 
-    // Clé OpenWeatherMap pour la page météo (https://openweathermap.org/api).
-    // Laissée vide ici : la météo affiche des données d'exemple tant
-    // qu'aucune clé n'est fournie. Voir INSTALLATION.md pour l'activer.
-    OPENWEATHER_API_KEY: '',
+    // La clé OpenWeatherMap n'est PLUS ici : elle est détenue côté serveur
+    // par la fonction /api/weather (variable d'environnement Vercel
+    // OPENWEATHER_API_KEY). Voir INSTALLATION.md.
 
     // Coordonnées de repli si le club du membre n'a pas de coordonnées.
     // Normalement, la météo utilise la latitude/longitude du terrain du club.
