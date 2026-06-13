@@ -42,9 +42,9 @@ function getCookie(name) {
 // Comptes de démonstration (mode démo uniquement)
 function fillDemo(role) {
     const demoUsers = {
-        admin: { username: 'admin@horizon-libre.fr', password: 'admin123' },
-        instructor: { username: 'instructeur@horizon-libre.fr', password: 'inst123' },
-        pilot: { username: 'pilote@horizon-libre.fr', password: 'pilot123' }
+        admin:      { username: 'admin',        password: 'admin123' },
+        instructor: { username: 'jean.moreau',  password: 'inst123'  },
+        pilot:      { username: 'marc.leroy',   password: 'pilot123' }
     };
 
     if (demoUsers[role]) {

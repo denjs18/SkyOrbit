@@ -153,10 +153,9 @@
                             <thead>
                                 <tr>
                                     <th>Nom</th>
+                                    <th>Identifiant</th>
                                     <th>Email</th>
-                                    <th>Téléphone</th>
                                     <th>Rôle</th>
-                                    <th>N° licence</th>
                                     <th>Expiration licence</th>
                                     <th>Visite médicale</th>
                                     <th>Cotisation <span class="cotisation-year"></span></th>
@@ -165,7 +164,7 @@
                                 </tr>
                             </thead>
                             <tbody id="membersTableBody">
-                                <tr><td colspan="10" class="text-muted">Chargement…</td></tr>
+                                <tr><td colspan="9" class="text-muted">Chargement…</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -223,6 +222,41 @@
                                 <label for="memberQualifications" class="form-label">Qualifications</label>
                                 <textarea class="form-control" id="memberQualifications" rows="2" placeholder="Multiaxe, Pendulaire, Instructeur…"></textarea>
                             </div>
+
+                            <!-- Accès à l'application -->
+                            <div class="col-12 mt-1" id="credentialsSection">
+                                <hr class="my-2">
+                                <p class="fw-semibold mb-2 text-secondary small text-uppercase">
+                                    <i class="fas fa-key"></i> Accès à l'application
+                                </p>
+                                <div class="row g-3">
+                                    <div class="col-md-5">
+                                        <label for="memberUsername" class="form-label">Identifiant <small class="text-muted">(login)</small></label>
+                                        <input type="text" class="form-control" id="memberUsername"
+                                               placeholder="jean.dupont"
+                                               pattern="[a-zA-Z0-9._-]{3,32}"
+                                               title="3 à 32 caractères : lettres, chiffres, point, tiret ou underscore"
+                                               autocomplete="off">
+                                        <div class="form-text">Utilisé à la place de l'email pour se connecter.</div>
+                                    </div>
+                                    <div class="col-md-7" id="tempPasswordSection">
+                                        <label for="memberTempPassword" class="form-label">
+                                            Mot de passe temporaire
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="memberTempPassword"
+                                                   placeholder="Laisser vide = compte non créé"
+                                                   autocomplete="off">
+                                            <button type="button" class="btn btn-outline-secondary"
+                                                    onclick="generateTempPassword()"
+                                                    title="Générer un mot de passe aléatoire">
+                                                <i class="fas fa-dice"></i>
+                                            </button>
+                                        </div>
+                                        <div class="form-text">Le membre le changera à sa première connexion.</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -258,6 +292,47 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     <button type="button" class="btn btn-success" onclick="saveCotisation()">
                         <i class="fas fa-check"></i> Marquer payée
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal réinitialisation des accès -->
+    <div class="modal fade" id="resetCredentialsModal" tabindex="-1" aria-labelledby="resetCredentialsTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resetCredentialsTitle">
+                        <i class="fas fa-key"></i> Réinitialiser les accès
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Réinitialiser les accès de <strong id="resetMemberName"></strong>.</p>
+                    <p class="text-muted small">
+                        Un nouveau mot de passe temporaire lui sera assigné. Le membre devra le changer à sa prochaine connexion.
+                    </p>
+                    <form id="resetCredentialsForm">
+                        <input type="hidden" id="resetMemberId">
+                        <div class="mb-3">
+                            <label for="resetTempPassword" class="form-label">Mot de passe temporaire <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="resetTempPassword"
+                                       required autocomplete="off" placeholder="Nouveau mot de passe temporaire">
+                                <button type="button" class="btn btn-outline-secondary"
+                                        onclick="generateResetPassword()"
+                                        title="Générer un mot de passe aléatoire">
+                                    <i class="fas fa-dice"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-warning" onclick="saveResetCredentials()">
+                        <i class="fas fa-key"></i> Réinitialiser
                     </button>
                 </div>
             </div>

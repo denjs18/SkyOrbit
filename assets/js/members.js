@@ -23,6 +23,7 @@
     let cotisations = [];
     let memberModal = null;
     let cotisationModal = null;
+    let resetCredentialsModal = null;
     let searchTerm = '';
 
     // ---------- Helpers ----------
@@ -126,6 +127,11 @@
                 : '<span class="badge bg-secondary">Inactif</span>';
             const id = escapeAttr(m.id);
 
+            const usernameBadge = m.username
+                ? `<span class="badge bg-light text-dark border font-monospace">${escapeHtml(m.username)}</span>`
+                    + (m.must_change_password ? ' <span class="badge bg-warning text-dark" title="Doit changer de mot de passe"><i class="fas fa-key"></i></span>' : '')
+                : '<span class="text-muted">—</span>';
+
             const actions = `
                 <div class="btn-group btn-group-sm" role="group">
                     <button type="button" class="btn btn-outline-primary" data-action="edit" data-id="${id}" title="Éditer">
@@ -134,6 +140,10 @@
                     <button type="button" class="btn btn-outline-${paid ? 'warning' : 'success'}" data-action="cotisation" data-id="${id}"
                         title="${paid ? 'Marquer la cotisation impayée' : 'Marquer la cotisation payée'}">
                         <i class="fas fa-euro-sign"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-action="reset-credentials" data-id="${id}"
+                        title="Réinitialiser les accès (nouveau mot de passe temporaire)">
+                        <i class="fas fa-key"></i>
                     </button>
                     <button type="button" class="btn btn-outline-${m.active ? 'danger' : 'success'}" data-action="toggle-active" data-id="${id}"
                         title="${m.active ? 'Désactiver le membre' : 'Activer le membre'}">
@@ -144,10 +154,9 @@
             return `
                 <tr class="${m.active ? '' : 'table-secondary'}">
                     <td>${escapeHtml(m.full_name)}</td>
+                    <td>${usernameBadge}</td>
                     <td>${escapeHtml(m.email)}</td>
-                    <td>${m.phone ? escapeHtml(m.phone) : '<span class="text-muted">—</span>'}</td>
                     <td>${roleBadge(m.role)}</td>
-                    <td>${m.license_number ? escapeHtml(m.license_number) : '<span class="text-muted">—</span>'}</td>
                     <td>${expiryCell(m.license_expiry)}</td>
                     <td>${expiryCell(m.medical_expiry)}</td>
                     <td>${cotBadge}</td>
@@ -169,6 +178,9 @@
         form.reset();
         document.getElementById('memberId').value = '';
         document.getElementById('memberModalTitle').innerHTML = '<i class="fas fa-user-plus"></i> Ajouter un membre';
+        // Afficher la section mot de passe temporaire uniquement à la création
+        const tempSection = document.getElementById('tempPasswordSection');
+        if (tempSection) tempSection.style.display = '';
         memberModal.show();
     }
 
@@ -188,6 +200,12 @@
         document.getElementById('memberLicenseExpiry').value = m.license_expiry || '';
         document.getElementById('memberMedicalExpiry').value = m.medical_expiry || '';
         document.getElementById('memberQualifications').value = m.qualifications || '';
+        document.getElementById('memberUsername').value = m.username || '';
+        // En édition, masquer le champ de mot de passe temporaire
+        // (utiliser le bouton "Réinitialiser les accès" à la place)
+        const tempSection = document.getElementById('tempPasswordSection');
+        if (tempSection) tempSection.style.display = 'none';
+        document.getElementById('memberTempPassword').value = '';
         document.getElementById('memberModalTitle').innerHTML = '<i class="fas fa-user-pen"></i> Modifier le membre';
         memberModal.show();
     }
@@ -200,6 +218,9 @@
         }
 
         const id = document.getElementById('memberId').value;
+        const username = document.getElementById('memberUsername').value.trim().toLowerCase();
+        const tempPassword = document.getElementById('memberTempPassword').value.trim();
+
         const fields = {
             full_name: document.getElementById('memberFullName').value.trim(),
             email: document.getElementById('memberEmail').value.trim(),
@@ -208,7 +229,8 @@
             license_number: document.getElementById('memberLicenseNumber').value.trim(),
             license_expiry: document.getElementById('memberLicenseExpiry').value || null,
             medical_expiry: document.getElementById('memberMedicalExpiry').value || null,
-            qualifications: document.getElementById('memberQualifications').value.trim()
+            qualifications: document.getElementById('memberQualifications').value.trim(),
+            username: username || null
         };
 
         try {
@@ -219,9 +241,12 @@
                 if (idx >= 0) members[idx] = updated;
                 showSuccessToast('Membre mis à jour avec succès');
             } else {
-                const created = await DB.createMember(fields);
+                const created = await DB.createMemberWithAccount({ ...fields, temp_password: tempPassword || null });
                 members.push(created);
-                showSuccessToast('Membre ajouté avec succès');
+                const msg = tempPassword
+                    ? `Membre ajouté. Identifiant : ${username || fields.email} / Mot de passe temporaire : ${tempPassword}`
+                    : 'Membre ajouté (sans compte de connexion)';
+                showSuccessToast(msg);
             }
             sortMembers();
             memberModal.hide();
@@ -303,6 +328,44 @@
         }
     }
 
+    // ---------- Réinitialisation des accès ----------
+
+    function openResetCredentialsModal(id) {
+        const m = findMember(id);
+        if (!m) {
+            showErrorToast('Membre introuvable');
+            return;
+        }
+        document.getElementById('resetMemberId').value = m.id;
+        document.getElementById('resetMemberName').textContent = m.full_name || '';
+        document.getElementById('resetTempPassword').value = '';
+        resetCredentialsModal.show();
+    }
+
+    async function saveResetCredentials() {
+        const form = document.getElementById('resetCredentialsForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        const memberId = document.getElementById('resetMemberId').value;
+        const tempPassword = document.getElementById('resetTempPassword').value.trim();
+
+        try {
+            showLoading();
+            await DB.adminResetCredentials(memberId, tempPassword);
+            const m = findMember(memberId);
+            if (m) m.must_change_password = true;
+            resetCredentialsModal.hide();
+            renderAll();
+            showSuccessToast(`Accès réinitialisés. Mot de passe temporaire : ${tempPassword}`);
+        } catch (e) {
+            showErrorToast(e.message);
+        } finally {
+            hideLoading();
+        }
+    }
+
     // ---------- Activation / désactivation ----------
 
     function toggleActive(id) {
@@ -340,6 +403,7 @@
         const action = btn.getAttribute('data-action');
         if (action === 'edit') openEditMemberModal(id);
         else if (action === 'cotisation') toggleCotisation(id);
+        else if (action === 'reset-credentials') openResetCredentialsModal(id);
         else if (action === 'toggle-active') toggleActive(id);
     }
 
@@ -351,6 +415,7 @@
 
         memberModal = new bootstrap.Modal(document.getElementById('memberModal'));
         cotisationModal = new bootstrap.Modal(document.getElementById('cotisationModal'));
+        resetCredentialsModal = new bootstrap.Modal(document.getElementById('resetCredentialsModal'));
 
         document.querySelectorAll('.cotisation-year').forEach(el => {
             el.textContent = CURRENT_YEAR;
@@ -386,10 +451,29 @@
         }
     }
 
+    // Génère un mot de passe temporaire de 8 caractères
+    function makeTemp() {
+        const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+        let pwd = '';
+        const arr = new Uint8Array(8);
+        crypto.getRandomValues(arr);
+        arr.forEach(b => { pwd += chars[b % chars.length]; });
+        return pwd;
+    }
+
+    window.generateTempPassword = function () {
+        document.getElementById('memberTempPassword').value = makeTemp();
+    };
+
+    window.generateResetPassword = function () {
+        document.getElementById('resetTempPassword').value = makeTemp();
+    };
+
     // Fonctions appelées depuis le HTML (onclick)
     window.openAddMemberModal = openAddMemberModal;
     window.saveMember = saveMember;
     window.saveCotisation = saveCotisation;
+    window.saveResetCredentials = saveResetCredentials;
 
     init();
 })();

@@ -15,7 +15,7 @@
 
     // ---------- MODE DÉMO : données d'exemple ----------
 
-    const DEMO_KEY = 'skyorbit_demo_db_v2';
+    const DEMO_KEY = 'skyorbit_demo_db_v3';
 
     function demoSeed() {
         const today = new Date();
@@ -30,10 +30,10 @@
                 { id: 'c-1', name: 'Horizon Libre', base_code: 'LF3177', base_name: 'Toulouse Nord Fronton', city: 'Fronton', latitude: 43.8678, longitude: 1.4167, description: 'Club ULM basé sur la plateforme Toulouse Nord Fronton (LF3177), piste en herbe 13/31, radio 123,50.', contact_email: 'contact@horizon-libre.fr', contact_phone: '' }
             ],
             profiles: [
-                { id: 'u-admin', club_id: 'c-1', email: 'admin@horizon-libre.fr', password: 'admin123', full_name: 'Alice Bureau', phone: '06 00 00 00 01', role: 'admin', license_number: 'ULM-12345', license_expiry: '2027-03-01', medical_expiry: '2026-09-15', qualifications: 'Multiaxe, Instructeur', active: true },
-                { id: 'u-inst', club_id: 'c-1', email: 'instructeur@horizon-libre.fr', password: 'inst123', full_name: 'Jean Moreau', phone: '06 00 00 00 02', role: 'instructor', license_number: 'ULM-23456', license_expiry: '2026-12-01', medical_expiry: '2026-07-20', qualifications: 'Multiaxe, Pendulaire, Instructeur', active: true },
-                { id: 'u-pilot', club_id: 'c-1', email: 'pilote@horizon-libre.fr', password: 'pilot123', full_name: 'Marc Leroy', phone: '06 00 00 00 03', role: 'pilot', license_number: 'ULM-34567', license_expiry: '2026-08-10', medical_expiry: '2026-06-25', qualifications: 'Multiaxe', active: true },
-                { id: 'u-sophie', club_id: 'c-1', email: 'sophie.martin@example.fr', password: 'demo123', full_name: 'Sophie Martin', phone: '06 00 00 00 04', role: 'member', license_number: 'ULM-45678', license_expiry: '2027-01-15', medical_expiry: '2027-02-01', qualifications: 'Élève pilote', active: true }
+                { id: 'u-admin', club_id: 'c-1', email: 'admin@horizon-libre.fr', username: 'admin', password: 'admin123', must_change_password: false, full_name: 'Alice Bureau', phone: '06 00 00 00 01', role: 'admin', license_number: 'ULM-12345', license_expiry: '2027-03-01', medical_expiry: '2026-09-15', qualifications: 'Multiaxe, Instructeur', active: true },
+                { id: 'u-inst', club_id: 'c-1', email: 'instructeur@horizon-libre.fr', username: 'jean.moreau', password: 'inst123', must_change_password: false, full_name: 'Jean Moreau', phone: '06 00 00 00 02', role: 'instructor', license_number: 'ULM-23456', license_expiry: '2026-12-01', medical_expiry: '2026-07-20', qualifications: 'Multiaxe, Pendulaire, Instructeur', active: true },
+                { id: 'u-pilot', club_id: 'c-1', email: 'pilote@horizon-libre.fr', username: 'marc.leroy', password: 'pilot123', must_change_password: false, full_name: 'Marc Leroy', phone: '06 00 00 00 03', role: 'pilot', license_number: 'ULM-34567', license_expiry: '2026-08-10', medical_expiry: '2026-06-25', qualifications: 'Multiaxe', active: true },
+                { id: 'u-sophie', club_id: 'c-1', email: 'sophie.martin@example.fr', username: 'sophie.martin', password: 'tmp-1234', must_change_password: true, full_name: 'Sophie Martin', phone: '06 00 00 00 04', role: 'member', license_number: 'ULM-45678', license_expiry: '2027-01-15', medical_expiry: '2027-02-01', qualifications: 'Élève pilote', active: true }
             ],
             machines: [
                 { id: 'm-1', club_id: 'c-1', registration: 'F-JABC', model: 'Skyranger Nynja', type: 'multiaxe', hours_total: 1240.5, maintenance_interval: 50, last_maintenance_hours: 1220, notes: '', active: true },
@@ -147,17 +147,29 @@
 
         // ----- Authentification -----
 
-        async signIn(email, password) {
+        async signIn(identifier, password) {
             if (sb) {
+                let email = identifier;
+                if (!identifier.includes('@')) {
+                    // Résolution identifiant → email via la fonction RPC
+                    const { data, error } = await sb.rpc('get_email_by_username', { p_username: identifier.toLowerCase() });
+                    if (error || !data) throw new Error('Identifiant ou mot de passe incorrect');
+                    email = data;
+                }
                 const { error } = await sb.auth.signInWithPassword({ email, password });
                 sbThrow(error);
                 const session = await this.getSession();
-                if (!session) throw new Error("Compte sans fiche membre : contactez le bureau.");
+                if (!session) throw new Error('Compte sans fiche membre : contactez le bureau.');
                 return session.profile;
             }
             const db = demoLoad();
-            const p = db.profiles.find(x => x.email.toLowerCase() === email.toLowerCase() && x.password === password && x.active);
-            if (!p) throw new Error('Email ou mot de passe incorrect');
+            const lc = identifier.toLowerCase();
+            const p = db.profiles.find(x =>
+                x.active &&
+                x.password === password &&
+                (x.email.toLowerCase() === lc || (x.username && x.username.toLowerCase() === lc))
+            );
+            if (!p) throw new Error('Identifiant ou mot de passe incorrect');
             sessionStorage.setItem('demo_user_id', p.id);
             return stripPassword(p);
         },
@@ -292,8 +304,140 @@
                 return data;
             }
             const db = demoLoad();
-            const p = withClub({ id: demoId('u'), active: true, role: 'member', password: 'demo123', ...fields });
+            const p = withClub({ id: demoId('u'), active: true, role: 'member', must_change_password: false, password: 'demo123', ...fields });
             db.profiles.push(p);
+            demoSave(db);
+            return stripPassword(p);
+        },
+
+        // Crée une fiche membre et, si un mot de passe temporaire est fourni,
+        // crée aussi le compte de connexion (via l'API serveur en mode Supabase).
+        async createMemberWithAccount(fields) {
+            const { temp_password, ...profileFields } = fields;
+            if (profileFields.username) profileFields.username = profileFields.username.toLowerCase();
+            if (temp_password) profileFields.must_change_password = true;
+
+            if (sb) {
+                const { data: profile, error: profileError } = await sb.from('profiles')
+                    .insert(withClub(profileFields)).select().single();
+                sbThrow(profileError);
+
+                if (temp_password) {
+                    const { data: { session } } = await sb.auth.getSession();
+                    const jwt = session && session.access_token;
+                    const resp = await fetch('/api/invite-member', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(jwt ? { 'Authorization': `Bearer ${jwt}` } : {})
+                        },
+                        body: JSON.stringify({ email: profileFields.email, tempPassword: temp_password, fullName: profileFields.full_name })
+                    });
+                    if (!resp.ok) {
+                        const err = await resp.json().catch(() => ({}));
+                        throw new Error(err.error || 'Fiche créée, mais le compte de connexion n\'a pas pu être créé');
+                    }
+                }
+                return profile;
+            }
+
+            const db = demoLoad();
+            const clubId = demoClubId();
+            if (profileFields.username && db.profiles.some(p =>
+                p.club_id === clubId && p.username && p.username.toLowerCase() === profileFields.username.toLowerCase()
+            )) {
+                throw new Error('Cet identifiant est déjà utilisé dans ce club');
+            }
+            const p = withClub({
+                id: demoId('u'),
+                active: true,
+                role: 'member',
+                must_change_password: !!temp_password,
+                password: temp_password || 'demo123',
+                ...profileFields
+            });
+            db.profiles.push(p);
+            demoSave(db);
+            return stripPassword(p);
+        },
+
+        // L'administrateur réinitialise les accès d'un membre (nouveau mot de passe
+        // temporaire + must_change_password = true).
+        async adminResetCredentials(memberId, tempPassword) {
+            if (sb) {
+                const { data: profile, error: profileError } = await sb.from('profiles')
+                    .update({ must_change_password: true })
+                    .eq('id', memberId)
+                    .select()
+                    .single();
+                sbThrow(profileError);
+
+                const { data: { session } } = await sb.auth.getSession();
+                const jwt = session && session.access_token;
+                const resp = await fetch('/api/invite-member', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(jwt ? { 'Authorization': `Bearer ${jwt}` } : {})
+                    },
+                    body: JSON.stringify({ email: profile.email, tempPassword, fullName: profile.full_name })
+                });
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => ({}));
+                    throw new Error(err.error || 'Impossible de réinitialiser les accès');
+                }
+                return profile;
+            }
+            const db = demoLoad();
+            const p = db.profiles.find(x => x.id === memberId);
+            if (!p) throw new Error('Membre introuvable');
+            p.password = tempPassword;
+            p.must_change_password = true;
+            demoSave(db);
+            return stripPassword(p);
+        },
+
+        // Le membre connecté met à jour son identifiant et/ou son mot de passe.
+        // Efface must_change_password.
+        async changeCredentials(newUsername, newPassword) {
+            if (sb) {
+                const { data: { user } } = await sb.auth.getUser();
+                if (!user) throw new Error('Non connecté');
+
+                const profileUpdate = { must_change_password: false };
+                if (newUsername) profileUpdate.username = newUsername.toLowerCase();
+
+                const { error: profileError } = await sb.from('profiles')
+                    .update(profileUpdate)
+                    .eq('user_id', user.id);
+                sbThrow(profileError);
+
+                if (newPassword) {
+                    const { error: pwdError } = await sb.auth.updateUser({ password: newPassword });
+                    sbThrow(pwdError);
+                }
+
+                const session = await this.getSession();
+                if (session) window.CURRENT_USER = session.profile;
+                return session ? session.profile : null;
+            }
+
+            const db = demoLoad();
+            const id = sessionStorage.getItem('demo_user_id');
+            const p = db.profiles.find(x => x.id === id);
+            if (!p) throw new Error('Utilisateur introuvable');
+
+            if (newUsername) {
+                const conflict = db.profiles.find(x =>
+                    x.id !== id &&
+                    x.club_id === p.club_id &&
+                    x.username && x.username.toLowerCase() === newUsername.toLowerCase()
+                );
+                if (conflict) throw new Error('Cet identifiant est déjà utilisé');
+                p.username = newUsername.toLowerCase();
+            }
+            if (newPassword) p.password = newPassword;
+            p.must_change_password = false;
             demoSave(db);
             return stripPassword(p);
         },

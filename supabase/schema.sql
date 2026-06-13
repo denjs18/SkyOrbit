@@ -31,6 +31,7 @@ drop function if exists app_role cascade;
 drop function if exists app_profile_id cascade;
 drop function if exists app_club_id cascade;
 drop function if exists is_admin cascade;
+drop function if exists get_email_by_username cascade;
 
 -- ------------------------------------------------------------
 -- CLUBS
@@ -59,20 +60,22 @@ create table clubs (
 -- automatiquement, sinon une fiche sans club est créée.
 
 create table profiles (
-    id              uuid primary key default gen_random_uuid(),
-    user_id         uuid unique references auth.users(id) on delete set null,
-    club_id         uuid references clubs(id) on delete set null,
-    email           text unique not null,
-    full_name       text not null,
-    phone           text,
-    role            text not null default 'member'
-                    check (role in ('admin', 'instructor', 'pilot', 'member')),
-    license_number  text,
-    license_expiry  date,
-    medical_expiry  date,
-    qualifications  text,
-    active          boolean not null default true,
-    created_at      timestamptz not null default now()
+    id                   uuid primary key default gen_random_uuid(),
+    user_id              uuid unique references auth.users(id) on delete set null,
+    club_id              uuid references clubs(id) on delete set null,
+    email                text unique not null,
+    username             text unique,          -- identifiant de connexion choisi (optionnel)
+    full_name            text not null,
+    phone                text,
+    role                 text not null default 'member'
+                         check (role in ('admin', 'instructor', 'pilot', 'member')),
+    license_number       text,
+    license_expiry       date,
+    medical_expiry       date,
+    qualifications       text,
+    active               boolean not null default true,
+    must_change_password boolean not null default false,
+    created_at           timestamptz not null default now()
 );
 
 create or replace function app_role()
@@ -94,6 +97,14 @@ create or replace function is_admin()
 returns boolean language sql stable as $$
     select app_role() = 'admin';
 $$;
+
+-- Résolution username → email pour la connexion par identifiant.
+-- Appelable par anon (avant connexion) car security definer.
+create or replace function get_email_by_username(p_username text)
+returns text language sql stable security definer set search_path = public as $$
+    select email from profiles where lower(username) = lower(p_username) limit 1;
+$$;
+grant execute on function get_email_by_username to anon, authenticated;
 
 create or replace function handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
