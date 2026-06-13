@@ -95,8 +95,27 @@
         <!-- Dashboard Content -->
         <div class="content-wrapper">
             <div class="page-header">
-                <h1><i class="fas fa-home"></i> Tableau de bord</h1>
-                <p class="text-muted">Bienvenue sur votre plateforme de gestion</p>
+                <div class="page-masthead">
+                    <p class="page-kicker">Poste de pilotage · Vue d'ensemble</p>
+                    <h1><i class="fas fa-gauge-high"></i> Tableau de bord</h1>
+                    <p class="page-sub">L'état du club en un coup d'œil : activité du jour, conditions de vol et points d'attention.</p>
+                </div>
+                <div class="page-plate">
+                    <div class="plate-title"><i class="fas fa-map-location-dot"></i> Terrain du club</div>
+                    <dl>
+                        <div class="row-line"><dt>Club</dt><dd id="plateClubName">—</dd></div>
+                        <div class="row-line"><dt>Code terrain</dt><dd id="plateBaseCode">—</dd></div>
+                        <div class="row-line"><dt>Base</dt><dd id="plateBaseName">—</dd></div>
+                        <div class="row-line"><dt>Date</dt><dd id="plateDate">—</dd></div>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Indicateurs -->
+            <div class="section-head">
+                <span class="sh-kicker">Indicateurs</span>
+                <h2>Activité du club</h2>
+                <span class="sh-rule"></span>
             </div>
 
             <!-- Quick Stats -->
@@ -147,13 +166,20 @@
                 </div>
             </div>
 
+            <!-- Opérations -->
+            <div class="section-head">
+                <span class="sh-kicker">Opérations</span>
+                <h2>Aujourd'hui sur le terrain</h2>
+                <span class="sh-rule"></span>
+            </div>
+
             <!-- Main Dashboard Grid -->
             <div class="row g-4">
                 <!-- Weather Widget -->
                 <div class="col-lg-6">
                     <div class="card">
                         <div class="card-header">
-                            <h5><i class="fas fa-cloud-sun"></i> Conditions Météo</h5>
+                            <h5><span class="card-kicker">MTO</span> <i class="fas fa-cloud-sun"></i> Conditions Météo</h5>
                             <a href="weather.html" class="btn btn-sm btn-outline-primary">Voir détails</a>
                         </div>
                         <div class="card-body">
@@ -197,7 +223,7 @@
                 <div class="col-lg-6">
                     <div class="card">
                         <div class="card-header">
-                            <h5><i class="fas fa-calendar-day"></i> Réservations du jour</h5>
+                            <h5><span class="card-kicker">RSV</span> <i class="fas fa-calendar-day"></i> Réservations du jour</h5>
                             <a href="reservations.html" class="btn btn-sm btn-outline-primary">Voir toutes</a>
                         </div>
                         <div class="card-body">
@@ -212,7 +238,7 @@
                 <div class="col-lg-8">
                     <div class="card">
                         <div class="card-header">
-                            <h5><i class="fas fa-bell"></i> Alertes</h5>
+                            <h5><span class="card-kicker">NOTAM</span> <i class="fas fa-bell"></i> Alertes</h5>
                         </div>
                         <div class="card-body">
                             <div id="alertsList">
@@ -226,7 +252,7 @@
                 <div class="col-lg-4">
                     <div class="card">
                         <div class="card-header">
-                            <h5><i class="fas fa-bolt"></i> Actions rapides</h5>
+                            <h5><span class="card-kicker">OPS</span> <i class="fas fa-bolt"></i> Actions rapides</h5>
                         </div>
                         <div class="card-body">
                             <div class="quick-actions">

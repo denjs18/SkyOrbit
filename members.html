@@ -95,10 +95,23 @@
         <!-- Members Content -->
         <div class="content-wrapper">
             <div class="page-header">
-                <h1><i class="fas fa-users"></i> Membres</h1>
-                <button type="button" class="btn btn-primary" data-role="admin" onclick="openAddMemberModal()">
-                    <i class="fas fa-user-plus"></i> Ajouter un membre
-                </button>
+                <div class="page-masthead">
+                    <p class="page-kicker">Effectif · Licences · Cotisations</p>
+                    <h1><i class="fas fa-users"></i> Membres</h1>
+                    <p class="page-sub">Licences, visites médicales et cotisations suivies au même endroit, avec alertes avant échéance.</p>
+                </div>
+                <div class="page-actions">
+                    <button type="button" class="btn btn-primary" data-role="admin" onclick="openAddMemberModal()">
+                        <i class="fas fa-user-plus"></i> Ajouter un membre
+                    </button>
+                </div>
+            </div>
+
+            <!-- Indicateurs -->
+            <div class="section-head">
+                <span class="sh-kicker">Indicateurs</span>
+                <h2>Vue d'ensemble de l'effectif</h2>
+                <span class="sh-rule"></span>
             </div>
 
             <!-- Quick Stats -->
@@ -139,9 +152,14 @@
             </div>
 
             <!-- Members Table -->
+            <div class="section-head">
+                <span class="sh-kicker">Annuaire</span>
+                <h2>Liste des membres</h2>
+                <span class="sh-rule"></span>
+            </div>
             <div class="card">
                 <div class="card-header">
-                    <h5><i class="fas fa-address-book"></i> Liste des membres</h5>
+                    <h5><span class="card-kicker">MBR</span> <i class="fas fa-address-book"></i> Liste des membres</h5>
                     <div class="input-group input-group-sm" style="max-width: 300px;">
                         <span class="input-group-text"><i class="fas fa-search"></i></span>
                         <input type="search" class="form-control" id="memberSearch" placeholder="Rechercher par nom ou email…" aria-label="Rechercher un membre">
